@@ -8,7 +8,7 @@ Enthält alle Funktionen, welche ich auf meinen Discord Servern brauche oder wic
 - Embed remover (Embeds nerven... Gifs Whitelistet)
 - Message Reaction (Mehr meme als alles andere)
 - Command fail Filter
-- Vorschläge System (Funktioniert über Modals und ja)
+- Vorschläge System (Aufgrund des neuen *guten* Systems im GHG Discord habe ich in 1h ein ausgebautes modernes Vorschläge System entwickelt mit Modals. Grüße gehen raus)
 - MUtils Server Manager (Interaktives Managen der Keys)
 - und anderen *guten* Stuff
 
