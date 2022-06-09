@@ -1,6 +1,7 @@
 package de.miraculixx.mcord.modals
 
 import de.miraculixx.mcord.modals.events.RenameModal
+import de.miraculixx.mcord.modals.events.VorschlagModal
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -15,6 +16,7 @@ class ModalManager : ListenerAdapter() {
         val id = it.modalId
         val commandClass = when {
             id.startsWith("renameCon_") -> dropdowns["rename"] ?: return
+            id.startsWith("vorschlag") -> dropdowns["vorschlag"] ?: return
             else -> dropdowns[id] ?: return
         }
         CoroutineScope(Dispatchers.Default).launch {
@@ -24,5 +26,6 @@ class ModalManager : ListenerAdapter() {
 
     init {
         dropdowns["rename"] = RenameModal()
+        dropdowns["vorschlag"] = VorschlagModal()
     }
 }

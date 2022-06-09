@@ -1,6 +1,7 @@
 package de.miraculixx.mcord.dropdowns
 
 import de.miraculixx.mcord.dropdowns.events.ServerManagerMenu
+import de.miraculixx.mcord.dropdowns.events.VorschlagSystem
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -15,6 +16,7 @@ class DropDownManager : ListenerAdapter() {
         val id = it.selectMenu.id ?: return
         val commandClass = when {
             id.startsWith("editcons_") -> dropdowns["serverSelect"] ?: return
+
             else -> dropdowns[id] ?: return
         }
         CoroutineScope(Dispatchers.Default).launch {
@@ -24,5 +26,6 @@ class DropDownManager : ListenerAdapter() {
 
     init {
         dropdowns["serverSelect"] = ServerManagerMenu()
+        dropdowns["vorschlag"] = VorschlagSystem()
     }
 }

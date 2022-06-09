@@ -65,7 +65,10 @@ class SlashCommandManager : ListenerAdapter(), LateInit {
             .addCommands(
                 Commands.slash("mc-info", "Gebe einen Nutzer Namen oder eine MC UUID ein, um Informationen über den Account zu bekommen")
                     .addOption(OptionType.STRING, "uuid", "Die UUID wird mit dem Account erstellt und kann nicht geändert werden")
-                    .addOption(OptionType.STRING, "name", "Der Name kann jederzeit geändert werden (mit Cooldown)")
+                    .addOption(OptionType.STRING, "name", "Der Name kann jederzeit geändert werden (mit Cooldown)"),
+                Commands.slash("admin", "A Admin only command for testing")
+                    .addOption(OptionType.STRING, "call", "Action to do", true, true)
+                    .addOption(OptionType.BOOLEAN, "status", "Switch Online Status of MUtils")
             ).queue()
         jda.updateCommands().queue()
     }
