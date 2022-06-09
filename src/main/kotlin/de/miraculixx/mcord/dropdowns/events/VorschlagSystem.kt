@@ -10,7 +10,11 @@ import net.dv8tion.jda.api.interactions.components.text.TextInputStyle
 class VorschlagSystem: DropDowns {
     override suspend fun trigger(it: SelectMenuInteractionEvent) {
         val options = it.selectedOptions
-        if (options.isEmpty()) return
+        if (options.isEmpty()) {
+            it.reply("```diff\n- ❌ Bitte wähle eine Kategorie aus, um etwas vor zu schlagen ❌```")
+                .setEphemeral(true).queue()
+            return
+        }
         val selected = options.first()
         val user = it.user
         val title = when (selected.value) {

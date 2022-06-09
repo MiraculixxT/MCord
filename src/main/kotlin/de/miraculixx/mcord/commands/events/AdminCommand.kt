@@ -4,6 +4,7 @@ import de.miraculixx.mcord.Main
 import de.miraculixx.mcord.commands.SlashCommands
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import net.dv8tion.jda.api.EmbedBuilder
 import net.dv8tion.jda.api.entities.Emoji
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent
 import net.dv8tion.jda.api.interactions.components.selections.SelectMenu
@@ -26,14 +27,22 @@ class AdminCommand : SlashCommands {
                     }
                     "vorschlag" -> {
                         val dd = SelectMenu.create("vorschlag")
-                            .addOption("Challenges", "vorschlag1", "Schlage Minecraft Challenges für Basti vor", Emoji.fromEmote("mutils", 975780449903341579, false))
-                            .addOption("Seltene Sachen", "vorschlag2", "Schlage Seltene Dinge in Minecraft vor für Seltene Sachen suchen", Emoji.fromUnicode("\uD83D\uDD0D"))
+                            .addOption("Challenges", "vorschlag1", "Schlage Minecraft Challenges für MUtils vor", Emoji.fromEmote("mutils", 975780449903341579, false))
+                            .addOption("Emotes (DC/Twitch)", "vorschlag2", "Schlage Emotes für Discord oder Twitch vor", Emoji.fromUnicode("\uD83D\uDD0D"))
                             .addOption("Discord Verbesserungen", "vorschlag3", "Schlage Verbesserungen für diesen Discord vor", Emoji.fromUnicode("⚒️"))
                         dd.maxValues = 1
                         dd.minValues = 0
                         dd.placeholder = "Sende einen neuen Vorschlag ein"
-                        it.reply("Blablabla, hier irgendeine Nachricht hin, die den Usern erklärt was zu machen ist")
-                            .addActionRow(dd.build()).queue()
+                        val embed = EmbedBuilder()
+                            .setColor(0x1CE721)
+                            .setTitle("\uD83D\uDCDD | Vorschläge Einsenden")
+                            .setDescription("Sende Vorschläge für verschiedene Kategorisieren ein! Alle Vorschläge werden für alle Sichtbar in den jeweiligen Channel gepostet\n" +
+                                    "\n⚠️ **Achtung**\n" +
+                                    "- Prüfe bitte, dass keine Dopplungen entstehen\n" +
+                                    "- Troll oder Missbrauch wird führt zu einer Sperre")
+                        it.textChannel.sendMessageEmbeds(embed.build())
+                            .setActionRow(dd.build()).queue()
+                        it.reply("fertig").queue()
                     }
                 }
             }
