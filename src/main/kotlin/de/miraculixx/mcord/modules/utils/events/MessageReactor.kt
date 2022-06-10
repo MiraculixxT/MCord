@@ -48,6 +48,13 @@ class MessageReactor : ListenerAdapter() {
                 message.addReaction(jda.getEmoteById(984174039713075251)!!).queue()
                 message.addReaction(jda.getEmoteById(984174038396043324)!!).queue()
             }
+            if (lower.contains("paula")) {
+                message.addReaction("\uD83C\uDDF5 ").queue()
+                message.addReaction("\uD83C\uDDE6").queue()
+                message.addReaction("\uD83C\uDDFA").queue()
+                message.addReaction("\uD83C\uDDF1").queue()
+                message.addReaction("\uD83C\uDD70️").queue()
+            }
             if (lower.contains("join mal call")) {
                 val am = guild.audioManager
                 am.openAudioConnection(jda?.getVoiceChannelById(707930638002683904))

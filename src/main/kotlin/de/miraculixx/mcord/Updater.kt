@@ -81,21 +81,8 @@ object Updater {
                 //Statistics
                 val statsUpdater = launch {
                     ">> Loading data for stats...".log()
-                    val updater = statsChannel.getHistoryFromBeginning(5).complete()?.retrievedHistory?.firstOrNull()
-                    val message = updater?.editMessage(" ") ?: statsChannel.sendMessage(" ")
-                        .setActionRow(Button.link("https://mutils.de", "MUtils Website").withEmoji(Emoji.fromEmote("mutils", 975780449903341579, false)))
-                    val timestamp = "<t:${Calendar.getInstance().timeInMillis.div(1000)}:R>"
-                    val users = Json.decodeFromString<List<KeyInfoDisplays.User>>(callAPI(API.MUTILS, "admin.php?pw=$pw&call=users"))
-                    val connections = Json.decodeFromString<List<KeyInfoDisplays.Connection>>(callAPI(API.MUTILS, "admin.php?pw=$pw&call=connections"))
-                    val version = Json.decodeFromString<KeyInfoDisplays.Version>(callAPI(API.MUTILS, "public.php?call=version&plugin=mutils"))
-                    val challenges = 37
-                    val downloads = "*Coming Soon*"
-
-                    message.setEmbeds(
-                        EntityBuilder(jda).createMessageEmbed(//"type":"rich",
-                            DataObject.fromJson("{\"type\":\"rich\",\"title\":\"__MUtils Statistics__ \uD83D\uDCCA\",\"description\":\"Updates every hour - Last Update ${timestamp}\\n<:blanc:784059217890770964>\\n> • **Users** `->` ${users.size * 2 + 50}\\n> • **Premium User** `->` ${ranks.size * 2 + 35}\\n> • **Active Premium Servers** `->` ${connections.size * 2 + 40}\\n\\n> • **Latest Version** `->` ${version.latest}\\n> • **Challenges** `->` ${challenges}\\n> • **Downloads** ``->`` $downloads (Updates slowly)\",\"color\":36637,\"footer\":{\"text\":\"MUtils - The Ultimate Challenge-Utility Plugin!\",\"icon_url\":\"https://i.imgur.com/xe2N5eF.png\"}}")
-                        )
-                    ).queue()
+                    //Stats Calculator
+                    //Removed due security reasons
                     ">> Stats Update finished!".log()
                 }
                 while (statsUpdater.isActive || rankUpdater.isActive) {
