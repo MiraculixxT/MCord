@@ -1,5 +1,6 @@
 package de.miraculixx.mcord
 
+import de.miraculixx.mcord.modules.starboard.StarboardReaction
 import de.miraculixx.mcord.utils.manager.ButtonManager
 import de.miraculixx.mcord.utils.manager.SlashCommandManager
 import de.miraculixx.mcord.utils.manager.DropDownManager
@@ -46,7 +47,7 @@ class Main {
         builder.setStatus(OnlineStatus.IDLE)
         builder.enableIntents(GatewayIntent.GUILD_MESSAGES, GatewayIntent.GUILD_MEMBERS)
         val lateInits = listOf(SlashCommandManager())
-        builder.addEventListeners(lateInits[0], ButtonManager(), TabComplete(), DropDownManager(), ModalManager(), MessageReactor())
+        builder.addEventListeners(lateInits[0], ButtonManager(), TabComplete(), DropDownManager(), ModalManager(), MessageReactor(), StarboardReaction(jda!!))
 
         jda = builder.build()
         jda!!.awaitReady()
