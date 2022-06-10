@@ -1,12 +1,12 @@
 package de.miraculixx.mcord.modules.mutils
 
+import de.miraculixx.mcord.config.Config
 import de.miraculixx.mcord.utils.KeyInfoDisplays
 import de.miraculixx.mcord.utils.api.API
 import de.miraculixx.mcord.utils.api.callAPI
 import de.miraculixx.mcord.utils.entities.Buttons
 import de.miraculixx.mcord.utils.log
-import de.miraculixx.mcord.utils.pw
-import de.miraculixx.mcord.utils.stupidCatching
+import de.miraculixx.mcord.utils.messageCache
 import kotlinx.coroutines.delay
 import net.dv8tion.jda.api.entities.Emoji
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent
@@ -35,7 +35,7 @@ class ServerEditButton : Buttons {
                 modal.addActionRow(input.build())
 
                 it.replyModal(modal.build()).queue()
-                stupidCatching[it.user.id] = it.message
+                messageCache[it.user.id] = it.message
             }
 
             id.startsWith("conButtonDelete_") -> {
@@ -63,7 +63,7 @@ class ServerEditButton : Buttons {
                 val tool = KeyInfoDisplays(hook, it.jda)
                 disableAll(it, tool.await)
                 val overviewButton = Button.primary("conButtonBack_${userID}_$ip", "Back to Overview").withEmoji(Emoji.fromUnicode("✖"))
-                callAPI(API.MUTILS, "admin.php?call=deleteconnection&pw=$pw&id=$userID&ip=$ip")
+                callAPI(API.MUTILS, "admin.php?call=deleteconnection&pw=${Config.API_KEY}&id=$userID&ip=$ip")
                 delay(1000)
 
                 hook.editOriginal(

@@ -1,10 +1,10 @@
 package de.miraculixx.mcord.modules.mutils
 
+import de.miraculixx.mcord.config.Config
 import de.miraculixx.mcord.utils.KeyInfoDisplays
 import de.miraculixx.mcord.utils.api.API
 import de.miraculixx.mcord.utils.api.callAPI
 import de.miraculixx.mcord.utils.entities.SlashCommands
-import de.miraculixx.mcord.utils.pw
 import kotlinx.coroutines.delay
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
@@ -43,12 +43,12 @@ class PremiumCommand : SlashCommands {
                         hook.editOriginal("```diff\n- Der angegebene Minecraft Account konnte nicht gefunden werden!```").queue()
                         return
                     }
-                    val newUser = Json.decodeFromString<KeyInfoDisplays.User>(callAPI(API.MUTILS, "admin.php?call=createuser&pw=$pw&mc=${uuid.name}&uuid=${uuid.id}&dc=${member.id}"))
+                    val newUser = Json.decodeFromString<KeyInfoDisplays.User>(callAPI(API.MUTILS, "admin.php?call=createuser&pw=${Config.API_KEY}&mc=${uuid.name}&uuid=${uuid.id}&dc=${member.id}"))
 
                     //Add Ranks
-                    if (member.isBoosting) callAPI(API.MUTILS, "admin.php?pw=$pw&call=addrank&id=${newUser.id}&type=Boosting&slots=1&expire=never")
-                    if (member.roles.contains(premium)) callAPI(API.MUTILS, "admin.php?pw=$pw&call=addrank&id=${newUser.id}&type=Unlimited&slots=6&expire=never")
-                    if (member.roles.contains(sub)) callAPI(API.MUTILS, "admin.php?pw=$pw&call=addrank&id=${newUser.id}&type=Subscriber&slots=2&expire=never")
+                    if (member.isBoosting) callAPI(API.MUTILS, "admin.php?pw=${Config.API_KEY}&call=addrank&id=${newUser.id}&type=Boosting&slots=1&expire=never")
+                    if (member.roles.contains(premium)) callAPI(API.MUTILS, "admin.php?pw=${Config.API_KEY}&call=addrank&id=${newUser.id}&type=Unlimited&slots=6&expire=never")
+                    if (member.roles.contains(sub)) callAPI(API.MUTILS, "admin.php?pw=${Config.API_KEY}&call=addrank&id=${newUser.id}&type=Subscriber&slots=2&expire=never")
 
                     delay(2000)
                     val buttons = listOf(
@@ -101,19 +101,19 @@ class PremiumCommand : SlashCommands {
                         if (!isPremium || rankTypes.contains("Unlimited")) {
                             hook.editOriginal(noPerms("Unlimited")).queue()
                             return
-                        } else callAPI(API.MUTILS, "admin.php?call=addrank&pw=$pw&id=${user.id}&type=Unlimited&slots=6&expire=never")
+                        } else callAPI(API.MUTILS, "admin.php?call=addrank&pw=${Config.API_KEY}&id=${user.id}&type=Unlimited&slots=6&expire=never")
                     }
                     "booster" -> {
                         if (!isBoosting || rankTypes.contains("Boosting")) {
                             hook.editOriginal(noPerms("Booster")).queue()
                             return
-                        } else callAPI(API.MUTILS, "admin.php?call=addrank&pw=$pw&id=${user.id}&type=Boosting&slots=1&expire=never")
+                        } else callAPI(API.MUTILS, "admin.php?call=addrank&pw=${Config.API_KEY}&id=${user.id}&type=Boosting&slots=1&expire=never")
                     }
                     "subscriber" -> {
                         if (!isSub || rankTypes.contains("Subscriber")) {
                             hook.editOriginal(noPerms("Subscriber")).queue()
                             return
-                        } else callAPI(API.MUTILS, "admin.php?call=addrank&pw=$pw&id=${user.id}&type=Subscriber&slots=2&expire=never")
+                        } else callAPI(API.MUTILS, "admin.php?call=addrank&pw=${Config.API_KEY}&id=${user.id}&type=Subscriber&slots=2&expire=never")
                     }
                     else -> {
                         hook.editOriginal(noPerms("None")).queue()

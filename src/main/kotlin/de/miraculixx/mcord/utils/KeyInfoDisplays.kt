@@ -1,7 +1,9 @@
 package de.miraculixx.mcord.utils
 
+import de.miraculixx.mcord.config.Config
 import de.miraculixx.mcord.utils.api.API
 import de.miraculixx.mcord.utils.api.callAPI
+import java.sql.Timestamp
 import kotlinx.coroutines.delay
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
@@ -15,7 +17,6 @@ import net.dv8tion.jda.api.interactions.components.buttons.Button
 import net.dv8tion.jda.api.interactions.components.selections.SelectMenu
 import net.dv8tion.jda.api.utils.data.DataObject
 import net.dv8tion.jda.internal.entities.EntityBuilder
-import java.sql.Timestamp
 
 class KeyInfoDisplays(private val hook: InteractionHook, private val jda: JDA) {
     val await = "<a:loading:972893675145265262> Communicating with Service..."
@@ -49,7 +50,7 @@ class KeyInfoDisplays(private val hook: InteractionHook, private val jda: JDA) {
     }
 
     suspend fun serverInfo(sourceMessage: Message, userID: String, ip: String, update: Boolean = false, dcID: String = "0") {
-        val response = callAPI(API.MUTILS, "admin.php?call=singleconnection&pw=$pw&id=$userID&ip=$ip")
+        val response = callAPI(API.MUTILS, "admin.php?call=singleconnection&pw=${Config.API_KEY}&id=$userID&ip=$ip")
         val connection = Json.decodeFromString<Connection>(response)
         val versionSplit = connection.serverVersion?.split('_')
         val serverSoftware = if ((versionSplit?.size ?: 0) > 1) versionSplit?.get(0) ?: "*Unbekannt*" else "*Unbekannt*"
@@ -125,7 +126,7 @@ class KeyInfoDisplays(private val hook: InteractionHook, private val jda: JDA) {
     )
 
     suspend fun getUser(id: String): User? {
-        val json = callAPI(API.MUTILS, "admin.php?call=user&pw=$pw&dc=$id")
+        val json = callAPI(API.MUTILS, "admin.php?call=user&pw=${Config.API_KEY}&dc=$id")
         if (json.isEmpty() || json.startsWith("error")) {
 
             return null
@@ -142,7 +143,7 @@ class KeyInfoDisplays(private val hook: InteractionHook, private val jda: JDA) {
     private suspend fun getDropDown(id: Int, key: String, max: Int): SelectMenu? {
         val builder = SelectMenu.create("editcons_${id}_${key}")
         builder.maxValues = 1
-        val response = callAPI(API.MUTILS, "admin.php?call=connections&pw=$pw&id=${id}")
+        val response = callAPI(API.MUTILS, "admin.php?call=connections&pw=${Config.API_KEY}&id=${id}")
         val empty = response.contains("NO_ENTRYS")
         if (response.startsWith("error") && !empty) {
             delay(5000)
