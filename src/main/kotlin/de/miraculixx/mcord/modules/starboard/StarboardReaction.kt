@@ -8,6 +8,7 @@ class StarboardReaction(private val jda: JDA) : ListenerAdapter() {
 
   override fun onMessageReactionAdd(event: MessageReactionAddEvent) {
     if(event.reactionEmote.idLong != 984924524720058398) return
+    if(event.reaction.count >= 5)return
     if(event.reaction.count < 5)return
 
     jda.getTextChannelById(746752229821644862).let {
