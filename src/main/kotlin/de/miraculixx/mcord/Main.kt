@@ -1,11 +1,11 @@
 package de.miraculixx.mcord
 
-import de.miraculixx.mcord.buttons.ButtonManager
-import de.miraculixx.mcord.commands.SlashCommandManager
-import de.miraculixx.mcord.dropdowns.DropDownManager
-import de.miraculixx.mcord.events.SlashCommandFixer
-import de.miraculixx.mcord.events.TabComplete
-import de.miraculixx.mcord.modals.ModalManager
+import de.miraculixx.mcord.utils.manager.ButtonManager
+import de.miraculixx.mcord.utils.manager.SlashCommandManager
+import de.miraculixx.mcord.utils.manager.DropDownManager
+import de.miraculixx.mcord.modules.utils.events.MessageReactor
+import de.miraculixx.mcord.modules.utils.events.TabComplete
+import de.miraculixx.mcord.utils.manager.ModalManager
 import de.miraculixx.mcord.utils.key
 import de.miraculixx.mcord.utils.log
 import io.ktor.client.*
@@ -19,7 +19,6 @@ import net.dv8tion.jda.api.JDABuilder
 import net.dv8tion.jda.api.OnlineStatus
 import net.dv8tion.jda.api.entities.Activity
 import net.dv8tion.jda.api.requests.GatewayIntent
-import net.dv8tion.jda.api.utils.cache.CacheFlag
 import java.io.BufferedReader
 import java.io.InputStreamReader
 
@@ -47,7 +46,7 @@ class Main {
         builder.setStatus(OnlineStatus.IDLE)
         builder.enableIntents(GatewayIntent.GUILD_MESSAGES, GatewayIntent.GUILD_MEMBERS)
         val lateInits = listOf(SlashCommandManager())
-        builder.addEventListeners(lateInits[0], ButtonManager(), TabComplete(), DropDownManager(), ModalManager(), SlashCommandFixer())
+        builder.addEventListeners(lateInits[0], ButtonManager(), TabComplete(), DropDownManager(), ModalManager(), MessageReactor())
 
         jda = builder.build()
         jda!!.awaitReady()

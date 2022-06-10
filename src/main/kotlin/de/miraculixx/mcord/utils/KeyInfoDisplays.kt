@@ -1,5 +1,7 @@
 package de.miraculixx.mcord.utils
 
+import de.miraculixx.mcord.utils.api.API
+import de.miraculixx.mcord.utils.api.callAPI
 import kotlinx.coroutines.delay
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
