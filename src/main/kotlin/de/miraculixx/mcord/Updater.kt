@@ -33,6 +33,7 @@ object Updater {
         JDA = jda
         return CoroutineScope(Dispatchers.Default).launch {
             val mcreate = jda.getGuildById(908621996009619477)
+            val statsChannel = mcreate?.getTextChannelById(975782593997963274)!!
             val mira = jda.getGuildById(707925156919771158)
 
             while (isActive) {
