@@ -1,15 +1,17 @@
 package de.miraculixx.mcord
 
-import de.miraculixx.mcord.utils.manager.ButtonManager
-import de.miraculixx.mcord.utils.manager.SlashCommandManager
-import de.miraculixx.mcord.utils.manager.DropDownManager
+import de.miraculixx.mcord.config.Config
 import de.miraculixx.mcord.modules.utils.events.MessageReactor
 import de.miraculixx.mcord.modules.utils.events.TabComplete
-import de.miraculixx.mcord.utils.manager.ModalManager
-import de.miraculixx.mcord.utils.key
 import de.miraculixx.mcord.utils.log
-import io.ktor.client.*
-import io.ktor.client.engine.cio.*
+import de.miraculixx.mcord.utils.manager.ButtonManager
+import de.miraculixx.mcord.utils.manager.DropDownManager
+import de.miraculixx.mcord.utils.manager.ModalManager
+import de.miraculixx.mcord.utils.manager.SlashCommandManager
+import io.ktor.client.HttpClient
+import io.ktor.client.engine.cio.CIO
+import java.io.BufferedReader
+import java.io.InputStreamReader
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.runBlocking
@@ -19,8 +21,6 @@ import net.dv8tion.jda.api.JDABuilder
 import net.dv8tion.jda.api.OnlineStatus
 import net.dv8tion.jda.api.entities.Activity
 import net.dv8tion.jda.api.requests.GatewayIntent
-import java.io.BufferedReader
-import java.io.InputStreamReader
 
 fun main() {
     Main()
@@ -40,7 +40,7 @@ class Main {
         INSTANCE = this
         KTOR = HttpClient(CIO)
 
-        val builder = JDABuilder.createDefault(key)
+        val builder = JDABuilder.createDefault(Config.DISCORD_TOKEN)
         //builder.disableCache(CacheFlag.VOICE_STATE)
         builder.setActivity(Activity.listening("Miraculixx's complains"))
         builder.setStatus(OnlineStatus.IDLE)

@@ -1,14 +1,12 @@
 package de.miraculixx.mcord.modules.utils.commands
 
-import de.miraculixx.mcord.utils.entities.SlashCommands
 import de.miraculixx.mcord.utils.api.MinecraftTools
-import de.miraculixx.mcord.utils.msg
-import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent
+import de.miraculixx.mcord.utils.entities.SlashCommands
 import java.sql.Timestamp
+import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent
 
 class MCTransferCommand : SlashCommands {
     override suspend fun trigger(it: SlashCommandInteractionEvent) {
-        val member = it.member ?: return
         val name = it.getOption("name")
         val uuid = it.getOption("uuid")
         val mcTools = MinecraftTools()
@@ -39,7 +37,11 @@ class MCTransferCommand : SlashCommands {
             }
             it.reply(builder.toString()).queue()
         } else {
-            it.reply(msg("missingValue", member)).setEphemeral(true).queue()
+            it.reply("""
+                ```diff
+                - You need to put at least one name or a uuid
+                ```
+            """.trimIndent()).setEphemeral(true).queue()
             return
         }
     }

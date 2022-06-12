@@ -1,9 +1,21 @@
 package de.miraculixx.mcord
 
-import de.miraculixx.mcord.utils.*
+import de.miraculixx.mcord.config.Config
+import de.miraculixx.mcord.utils.KeyInfoDisplays
 import de.miraculixx.mcord.utils.api.API
 import de.miraculixx.mcord.utils.api.callAPI
-import kotlinx.coroutines.*
+import de.miraculixx.mcord.utils.log
+import java.sql.Timestamp
+import java.util.Calendar
+import kotlin.time.Duration.Companion.hours
+import kotlin.time.Duration.Companion.seconds
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.joinAll
+import kotlinx.coroutines.launch
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
 import net.dv8tion.jda.api.JDA
@@ -13,10 +25,6 @@ import net.dv8tion.jda.api.entities.UserSnowflake
 import net.dv8tion.jda.api.interactions.components.buttons.Button
 import net.dv8tion.jda.api.utils.data.DataObject
 import net.dv8tion.jda.internal.entities.EntityBuilder
-import java.sql.Timestamp
-import java.util.*
-import kotlin.time.Duration.Companion.hours
-import kotlin.time.Duration.Companion.seconds
 
 object Updater {
     private var JDA: JDA? = null
@@ -32,7 +40,7 @@ object Updater {
                 "--=--=--=-->> Start Data Update <<--=--=--=--".log()
 
                 //Update data from Server
-                val response = callAPI(API.MUTILS, "admin.php?call=ranks&pw=$pw")
+                val response = callAPI(API.MUTILS, "admin.php?call=ranks&pw=${Config.API_KEY}")
                 val ranks = Json.decodeFromString<List<KeyInfoDisplays.Rank>>(response)
                 val buttons = listOf(
                     Button.link("https://mutils.de/dc", "MCreate").withEmoji(Emoji.fromEmote("mutils", 975780449903341579, false)),
@@ -50,24 +58,24 @@ object Updater {
                                     removeRank(rank, buttons, mcreate)
                                 }
                             } else {
-                                val user = Json.decodeFromString<KeyInfoDisplays.User>(callAPI(API.MUTILS, "admin.php?call=user&pw=$pw&id=${rank.id}"))
+                                val user = Json.decodeFromString<KeyInfoDisplays.User>(callAPI(API.MUTILS, "admin.php?call=user&pw=${Config.API_KEY}&id=${rank.id}"))
                                 when (rank.type) {
                                     "Subscriber" -> {
-                                        val member = mcreate.retrieveMember(UserSnowflake.fromId(user.dc)).complete()
+                                        val member = mcreate?.retrieveMember(UserSnowflake.fromId(user.dc))?.complete()
                                         val isSub = member?.roles?.contains(mcreate.getRoleById(938898054151561226)) ?: false
                                         if (!isSub) {
                                             removeRank(rank, buttons, mcreate)
                                         }
                                     }
                                     "Boosting" -> {
-                                        val member = mcreate.retrieveMember(UserSnowflake.fromId(user.dc)).complete()
+                                        val member = mcreate?.retrieveMember(UserSnowflake.fromId(user.dc))?.complete()
                                         val member2 = mira?.retrieveMember(UserSnowflake.fromId(user.dc))?.complete()
                                         if (member?.isBoosting != true && member2?.isBoosting != true) {
                                             removeRank(rank, buttons, mcreate)
                                         }
                                     }
                                     "Unlimited" -> {
-                                        val member = mcreate.retrieveMember(UserSnowflake.fromId(user.dc)).complete()
+                                        val member = mcreate?.retrieveMember(UserSnowflake.fromId(user.dc))?.complete()
                                         val isPremium = member?.roles?.contains(mcreate.getRoleById(909192161386430484)) ?: false
                                         if (!isPremium) {
                                             removeRank(rank, buttons, mcreate)
@@ -83,8 +91,21 @@ object Updater {
                 //Statistics
                 val statsUpdater = launch {
                     ">> Loading data for stats...".log()
-                    //Stats Calculator
-                    //Removed due security reasons
+                    val updater = statsChannel.getHistoryFromBeginning(5).complete()?.retrievedHistory?.firstOrNull()
+                    val message = updater?.editMessage(" ") ?: statsChannel.sendMessage(" ")
+                        .setActionRow(Button.link("https://mutils.de", "MUtils Website").withEmoji(Emoji.fromEmote("mutils", 975780449903341579, false)))
+                    val timestamp = "<t:${Calendar.getInstance().timeInMillis.div(1000)}:R>"
+                    val users = Json.decodeFromString<List<KeyInfoDisplays.User>>(callAPI(API.MUTILS, "admin.php?pw=$pw&call=users"))
+                    val connections = Json.decodeFromString<List<KeyInfoDisplays.Connection>>(callAPI(API.MUTILS, "admin.php?pw=$pw&call=connections"))
+                    val version = Json.decodeFromString<KeyInfoDisplays.Version>(callAPI(API.MUTILS, "public.php?call=version&plugin=mutils"))
+                    val challenges = 37
+                    val downloads = "*Coming Soon*"
+
+                    message.setEmbeds(
+                        EntityBuilder(jda).createMessageEmbed(//"type":"rich",
+                            DataObject.fromJson("{\"type\":\"rich\",\"title\":\"__MUtils Statistics__ \uD83D\uDCCA\",\"description\":\"Updates every hour - Last Update ${timestamp}\\n<:blanc:784059217890770964>\\n> • **Users** `->` ${users.size}\\n> • **Premium User** `->` ${ranks.size}\\n> • **Active Premium Servers** `->` ${connections.size}\\n\\n> • **Latest Version** `->` ${version.latest}\\n> • **Challenges** `->` ${challenges}\\n> • **Downloads** ``->`` $downloads (Updates slowly)\",\"color\":36637,\"footer\":{\"text\":\"MUtils - The Ultimate Challenge-Utility Plugin!\",\"icon_url\":\"https://i.imgur.com/xe2N5eF.png\"}}")
+                        )
+                    ).queue()
                     ">> Stats Update finished!".log()
                 }
                 while (statsUpdater.isActive || rankUpdater.isActive) {
@@ -99,7 +120,7 @@ object Updater {
     private suspend fun removeRank(rank: KeyInfoDisplays.Rank, buttons: List<Button>, mcreate: Guild?) {
         ">> Rank Remover -> ${rank.id} ${rank.type}".log()
 
-        val id = callAPI(API.MUTILS, "admin.php?call=removerank&pw=$pw&type=${rank.type}&id=${rank.id}")
+        val id = callAPI(API.MUTILS, "admin.php?call=removerank&pw=${Config.API_KEY}&type=${rank.type}&id=${rank.id}")
         val user = JDA!!.retrieveUserById(id).complete()
         val expireDate = rank.expireDate
         val timestamp = if (expireDate == "never") "<t:${System.currentTimeMillis().div(1000)}:F>"

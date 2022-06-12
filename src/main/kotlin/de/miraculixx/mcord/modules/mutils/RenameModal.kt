@@ -1,11 +1,11 @@
 package de.miraculixx.mcord.modules.mutils
 
+import de.miraculixx.mcord.config.Config
 import de.miraculixx.mcord.utils.KeyInfoDisplays
 import de.miraculixx.mcord.utils.api.API
 import de.miraculixx.mcord.utils.api.callAPI
 import de.miraculixx.mcord.utils.entities.Modals
-import de.miraculixx.mcord.utils.pw
-import de.miraculixx.mcord.utils.stupidCatching
+import de.miraculixx.mcord.utils.messageCache
 import kotlinx.coroutines.delay
 import net.dv8tion.jda.api.events.interaction.ModalInteractionEvent
 
@@ -13,12 +13,12 @@ class RenameModal : Modals {
     override suspend fun trigger(it: ModalInteractionEvent) {
         val tool = KeyInfoDisplays(it.hook, it.jda)
         val dcID = it.user.id
-        val message = stupidCatching[dcID]
+        val message = messageCache[dcID]
         if (message == null) {
             it.reply("```diff\n- Unable to find source message.\n- Maybe you took to long for Discord?```").setEphemeral(true).queue()
             return
         }
-        stupidCatching.remove(dcID)
+        messageCache.remove(dcID)
 
         val id = it.modalId.split('_')
         val content = it.values.first().asString.replace(' ', '_')
@@ -29,7 +29,7 @@ class RenameModal : Modals {
         }
         it.editMessage(tool.await).queue()
 
-        callAPI(API.MUTILS, "admin.php?call=updateconnection&pw=$pw&id=${id[1]}&ip=${id[2]}&name=$content")
+        callAPI(API.MUTILS, "admin.php?call=updateconnection&pw=${Config.API_KEY}&id=${id[1]}&ip=${id[2]}&name=$content")
         tool.serverInfo(message, id[1], id[2], true, dcID)
         println("${it.user.asTag} -> RENAME - ${id[2]} - $content")
     }
