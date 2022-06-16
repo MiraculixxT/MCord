@@ -26,6 +26,7 @@ class CommandAccount : SlashCommandEvent {
         val sub = guild.getRoleById(938898054151561226)
         val jda = it.jda
         val tool = KeyInfoDisplays(it.hook, jda)
+        val apiKey = Config.apiKey
 
         it.reply("<a:loading:972893675145265262> Communicating with Service...").setEphemeral(true).queue()
         val hook = it.hook
@@ -43,12 +44,12 @@ class CommandAccount : SlashCommandEvent {
                         hook.editOriginal("```diff\n- Der angegebene Minecraft Account konnte nicht gefunden werden!```").queue()
                         return
                     }
-                    val newUser = Json.decodeFromString<KeyInfoDisplays.User>(callAPI(API.MUTILS, "admin.php?call=createuser&pw=${Config.API_KEY}&mc=${uuid.name}&uuid=${uuid.id}&dc=${member.id}"))
+                    val newUser = Json.decodeFromString<KeyInfoDisplays.User>(callAPI(API.MUTILS, "admin.php?call=createuser&pw=${apiKey}&mc=${uuid.name}&uuid=${uuid.id}&dc=${member.id}"))
 
                     //Add Ranks
-                    if (member.isBoosting) callAPI(API.MUTILS, "admin.php?pw=${Config.API_KEY}&call=addrank&id=${newUser.id}&type=Boosting&slots=1&expire=never")
-                    if (member.roles.contains(premium)) callAPI(API.MUTILS, "admin.php?pw=${Config.API_KEY}&call=addrank&id=${newUser.id}&type=Unlimited&slots=6&expire=never")
-                    if (member.roles.contains(sub)) callAPI(API.MUTILS, "admin.php?pw=${Config.API_KEY}&call=addrank&id=${newUser.id}&type=Subscriber&slots=2&expire=never")
+                    if (member.isBoosting) callAPI(API.MUTILS, "admin.php?pw=${apiKey}&call=addrank&id=${newUser.id}&type=Boosting&slots=1&expire=never")
+                    if (member.roles.contains(premium)) callAPI(API.MUTILS, "admin.php?pw=${apiKey}&call=addrank&id=${newUser.id}&type=Unlimited&slots=6&expire=never")
+                    if (member.roles.contains(sub)) callAPI(API.MUTILS, "admin.php?pw=${apiKey}&call=addrank&id=${newUser.id}&type=Subscriber&slots=2&expire=never")
 
                     delay(2000)
                     val buttons = listOf(
@@ -101,19 +102,19 @@ class CommandAccount : SlashCommandEvent {
                         if (!isPremium || rankTypes.contains("Unlimited")) {
                             hook.editOriginal(noPerms("Unlimited")).queue()
                             return
-                        } else callAPI(API.MUTILS, "admin.php?call=addrank&pw=${Config.API_KEY}&id=${user.id}&type=Unlimited&slots=6&expire=never")
+                        } else callAPI(API.MUTILS, "admin.php?call=addrank&pw=${apiKey}&id=${user.id}&type=Unlimited&slots=6&expire=never")
                     }
                     "booster" -> {
                         if (!isBoosting || rankTypes.contains("Boosting")) {
                             hook.editOriginal(noPerms("Booster")).queue()
                             return
-                        } else callAPI(API.MUTILS, "admin.php?call=addrank&pw=${Config.API_KEY}&id=${user.id}&type=Boosting&slots=1&expire=never")
+                        } else callAPI(API.MUTILS, "admin.php?call=addrank&pw=${apiKey}&id=${user.id}&type=Boosting&slots=1&expire=never")
                     }
                     "subscriber" -> {
                         if (!isSub || rankTypes.contains("Subscriber")) {
                             hook.editOriginal(noPerms("Subscriber")).queue()
                             return
-                        } else callAPI(API.MUTILS, "admin.php?call=addrank&pw=${Config.API_KEY}&id=${user.id}&type=Subscriber&slots=2&expire=never")
+                        } else callAPI(API.MUTILS, "admin.php?call=addrank&pw=${apiKey}&id=${user.id}&type=Subscriber&slots=2&expire=never")
                     }
                     else -> {
                         hook.editOriginal(noPerms("None")).queue()

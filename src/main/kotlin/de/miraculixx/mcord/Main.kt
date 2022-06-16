@@ -41,7 +41,7 @@ class Main {
         INSTANCE = this
         KTOR = HttpClient(CIO)
 
-        val builder = JDABuilder.createDefault(Config.DISCORD_TOKEN)
+        val builder = JDABuilder.createDefault(Config.botToken)
         //builder.disableCache(CacheFlag.VOICE_STATE)
         builder.setActivity(Activity.listening("Miraculixx's complains"))
         builder.setStatus(OnlineStatus.IDLE)

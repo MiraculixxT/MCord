@@ -21,8 +21,8 @@ dependencies {
     implementation("io.ktor", "ktor-client-core-jvm", "2.0.1")
     implementation("io.ktor", "ktor-client-cio", "2.0.1")
 
-    implementation(platform("dev.schlaubi:stdx-bom:1.1.0"))
-    implementation("dev.schlaubi", "stdx-envconf")
+    //implementation(platform("dev.schlaubi:stdx-bom:1.1.0"))
+    //implementation("dev.schlaubi", "stdx-envconf")
 
     implementation("org.slf4j", "slf4j-nop", "2.0.0-alpha7")
     implementation("ch.qos.logback", "logback-classic", "1.2.11")

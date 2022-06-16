@@ -63,7 +63,7 @@ class ButtonServer : ButtonEvent {
                 val tool = KeyInfoDisplays(hook, it.jda)
                 disableAll(it, tool.await)
                 val overviewButton = Button.primary("conButtonBack_${userID}_$ip", "Back to Overview").withEmoji(Emoji.fromUnicode("✖"))
-                callAPI(API.MUTILS, "admin.php?call=deleteconnection&pw=${Config.API_KEY}&id=$userID&ip=$ip")
+                callAPI(API.MUTILS, "admin.php?call=deleteconnection&pw=${Config.apiKey}&id=$userID&ip=$ip")
                 delay(1000)
 
                 hook.editOriginal(

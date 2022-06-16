@@ -50,7 +50,7 @@ class KeyInfoDisplays(private val hook: InteractionHook, private val jda: JDA) {
     }
 
     suspend fun serverInfo(sourceMessage: Message, userID: String, ip: String, update: Boolean = false, dcID: String = "0") {
-        val response = callAPI(API.MUTILS, "admin.php?call=singleconnection&pw=${Config.API_KEY}&id=$userID&ip=$ip")
+        val response = callAPI(API.MUTILS, "admin.php?call=singleconnection&pw=${Config.apiKey}&id=$userID&ip=$ip")
         val connection = Json.decodeFromString<Connection>(response)
         val versionSplit = connection.serverVersion?.split('_')
         val serverSoftware = if ((versionSplit?.size ?: 0) > 1) versionSplit?.get(0) ?: "*Unbekannt*" else "*Unbekannt*"
@@ -126,7 +126,7 @@ class KeyInfoDisplays(private val hook: InteractionHook, private val jda: JDA) {
     )
 
     suspend fun getUser(id: String): User? {
-        val json = callAPI(API.MUTILS, "admin.php?call=user&pw=${Config.API_KEY}&dc=$id")
+        val json = callAPI(API.MUTILS, "admin.php?call=user&pw=${Config.apiKey}&dc=$id")
         if (json.isEmpty() || json.startsWith("error")) {
 
             return null
@@ -143,7 +143,7 @@ class KeyInfoDisplays(private val hook: InteractionHook, private val jda: JDA) {
     private suspend fun getDropDown(id: Int, key: String, max: Int): SelectMenu? {
         val builder = SelectMenu.create("editcons_${id}_${key}")
         builder.maxValues = 1
-        val response = callAPI(API.MUTILS, "admin.php?call=connections&pw=${Config.API_KEY}&id=${id}")
+        val response = callAPI(API.MUTILS, "admin.php?call=connections&pw=${Config.apiKey}&id=${id}")
         val empty = response.contains("NO_ENTRYS")
         if (response.startsWith("error") && !empty) {
             delay(5000)
