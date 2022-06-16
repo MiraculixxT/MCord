@@ -35,7 +35,7 @@ class MessageReactor : ListenerAdapter() {
             //Message is from a valid User
             if (lower.contains("https://")) {
                 //Has Embed Link
-                if (!content.contains("tenor.com") && !content.contains("imgur.com"))
+                if (message.embeds.isNotEmpty() && !content.contains("tenor.com") && !content.contains("imgur.com"))
                     message.suppressEmbeds(true).queue()
             }
             if (lower.contains("kuhl") || lower.contains("cool"))
@@ -49,7 +49,7 @@ class MessageReactor : ListenerAdapter() {
                 message.addReaction(jda.getEmoteById(984174038396043324)!!).queue()
             }
             if (lower.contains("paula")) {
-                message.addReaction("\uD83C\uDDF5 ").queue()
+                message.addReaction("\uD83C\uDDF5").queue()
                 message.addReaction("\uD83C\uDDE6").queue()
                 message.addReaction("\uD83C\uDDFA").queue()
                 message.addReaction("\uD83C\uDDF1").queue()

@@ -1,8 +1,8 @@
 package de.miraculixx.mcord.utils.manager
 
-import de.miraculixx.mcord.modules.mutils.PremiumDropdown
-import de.miraculixx.mcord.modules.suggest.VorschlagDropdown
-import de.miraculixx.mcord.utils.entities.DropDowns
+import de.miraculixx.mcord.modules.mutils.DropdownServer
+import de.miraculixx.mcord.modules.suggest.DropdownSuggest
+import de.miraculixx.mcord.utils.entities.DropDownEvent
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -11,7 +11,7 @@ import net.dv8tion.jda.api.hooks.ListenerAdapter
 
 class DropDownManager : ListenerAdapter() {
 
-    private val dropdowns = HashMap<String, DropDowns>()
+    private val dropdowns = HashMap<String, DropDownEvent>()
 
     override fun onSelectMenuInteraction(it: SelectMenuInteractionEvent) {
         val id = it.selectMenu.id ?: return
@@ -26,7 +26,7 @@ class DropDownManager : ListenerAdapter() {
     }
 
     init {
-        dropdowns["serverSelect"] = PremiumDropdown()
-        dropdowns["vorschlag"] = VorschlagDropdown()
+        dropdowns["serverSelect"] = DropdownServer()
+        dropdowns["vorschlag"] = DropdownSuggest()
     }
 }

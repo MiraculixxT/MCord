@@ -1,13 +1,13 @@
 package de.miraculixx.mcord.modules.suggest
 
-import de.miraculixx.mcord.utils.entities.DropDowns
+import de.miraculixx.mcord.utils.entities.DropDownEvent
 import net.dv8tion.jda.api.events.interaction.component.SelectMenuInteractionEvent
 import net.dv8tion.jda.api.interactions.components.ActionRow
 import net.dv8tion.jda.api.interactions.components.Modal
 import net.dv8tion.jda.api.interactions.components.text.TextInput
 import net.dv8tion.jda.api.interactions.components.text.TextInputStyle
 
-class VorschlagDropdown: DropDowns {
+class DropdownSuggest: DropDownEvent {
     override suspend fun trigger(it: SelectMenuInteractionEvent) {
         val options = it.selectedOptions
         if (options.isEmpty()) {

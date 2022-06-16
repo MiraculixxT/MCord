@@ -1,8 +1,8 @@
 package de.miraculixx.mcord.utils.manager
 
-import de.miraculixx.mcord.modules.mutils.RenameModal
-import de.miraculixx.mcord.modules.suggest.VorschlagModal
-import de.miraculixx.mcord.utils.entities.Modals
+import de.miraculixx.mcord.modules.mutils.ModalRename
+import de.miraculixx.mcord.modules.suggest.ModalSuggest
+import de.miraculixx.mcord.utils.entities.ModalEvent
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -11,7 +11,7 @@ import net.dv8tion.jda.api.hooks.ListenerAdapter
 
 class ModalManager : ListenerAdapter() {
 
-    private val dropdowns = HashMap<String, Modals>()
+    private val dropdowns = HashMap<String, ModalEvent>()
 
     override fun onModalInteraction(it: ModalInteractionEvent) {
         val id = it.modalId
@@ -26,7 +26,7 @@ class ModalManager : ListenerAdapter() {
     }
 
     init {
-        dropdowns["rename"] = RenameModal()
-        dropdowns["vorschlag"] = VorschlagModal()
+        dropdowns["rename"] = ModalRename()
+        dropdowns["vorschlag"] = ModalSuggest()
     }
 }

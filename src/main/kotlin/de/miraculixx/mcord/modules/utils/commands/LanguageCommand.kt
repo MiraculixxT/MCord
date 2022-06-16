@@ -1,10 +1,10 @@
 package de.miraculixx.mcord.modules.utils.commands
 
-import de.miraculixx.mcord.utils.entities.SlashCommands
+import de.miraculixx.mcord.utils.entities.SlashCommandEvent
 import net.dv8tion.jda.api.entities.UserSnowflake
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent
 
-class LanguageCommand: SlashCommands {
+class LanguageCommand: SlashCommandEvent {
     override suspend fun trigger(it: SlashCommandInteractionEvent) {
         val user = it.user
         val id = UserSnowflake.fromId(user.id)

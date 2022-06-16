@@ -1,7 +1,7 @@
 package de.miraculixx.mcord.modules.utils.commands
 
 import de.miraculixx.mcord.Main
-import de.miraculixx.mcord.utils.entities.SlashCommands
+import de.miraculixx.mcord.utils.entities.SlashCommandEvent
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import net.dv8tion.jda.api.EmbedBuilder
@@ -9,7 +9,7 @@ import net.dv8tion.jda.api.entities.Emoji
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent
 import net.dv8tion.jda.api.interactions.components.selections.SelectMenu
 
-class AdminCommand : SlashCommands {
+class AdminCommand : SlashCommandEvent {
     override suspend fun trigger(it: SlashCommandInteractionEvent) {
         if (it.user.name != "Miraculixx") return
         runBlocking {

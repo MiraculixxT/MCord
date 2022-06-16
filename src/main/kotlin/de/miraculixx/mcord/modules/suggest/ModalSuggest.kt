@@ -1,11 +1,11 @@
 package de.miraculixx.mcord.modules.suggest
 
 import de.miraculixx.mcord.Main
-import de.miraculixx.mcord.utils.entities.Modals
+import de.miraculixx.mcord.utils.entities.ModalEvent
 import net.dv8tion.jda.api.EmbedBuilder
 import net.dv8tion.jda.api.events.interaction.ModalInteractionEvent
 
-class VorschlagModal : Modals {
+class ModalSuggest : ModalEvent {
     override suspend fun trigger(it: ModalInteractionEvent) {
         val id = it.modalId
         val jda = Main.INSTANCE.jda!!

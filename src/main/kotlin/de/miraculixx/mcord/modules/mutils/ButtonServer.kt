@@ -4,7 +4,7 @@ import de.miraculixx.mcord.config.Config
 import de.miraculixx.mcord.utils.KeyInfoDisplays
 import de.miraculixx.mcord.utils.api.API
 import de.miraculixx.mcord.utils.api.callAPI
-import de.miraculixx.mcord.utils.entities.Buttons
+import de.miraculixx.mcord.utils.entities.ButtonEvent
 import de.miraculixx.mcord.utils.log
 import de.miraculixx.mcord.utils.messageCache
 import kotlinx.coroutines.delay
@@ -16,7 +16,7 @@ import net.dv8tion.jda.api.interactions.components.buttons.Button
 import net.dv8tion.jda.api.interactions.components.text.TextInput
 import net.dv8tion.jda.api.interactions.components.text.TextInputStyle
 
-class ServerEditButton : Buttons {
+class ButtonServer : ButtonEvent {
     override suspend fun trigger(it: ButtonInteractionEvent) {
         val id = it.button.id ?: return
         val splitter = id.split('_')

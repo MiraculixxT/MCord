@@ -1,11 +1,11 @@
 package de.miraculixx.mcord.modules.utils.commands
 
 import de.miraculixx.mcord.utils.api.MinecraftTools
-import de.miraculixx.mcord.utils.entities.SlashCommands
+import de.miraculixx.mcord.utils.entities.SlashCommandEvent
 import java.sql.Timestamp
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent
 
-class MCTransferCommand : SlashCommands {
+class MCTransferCommand : SlashCommandEvent {
     override suspend fun trigger(it: SlashCommandInteractionEvent) {
         val name = it.getOption("name")
         val uuid = it.getOption("uuid")

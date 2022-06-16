@@ -1,8 +1,8 @@
 package de.miraculixx.mcord.utils.manager
 
-import de.miraculixx.mcord.modules.mutils.DeleteUserButton
-import de.miraculixx.mcord.modules.mutils.ServerEditButton
-import de.miraculixx.mcord.utils.entities.Buttons
+import de.miraculixx.mcord.modules.mutils.ButtonDeleteUser
+import de.miraculixx.mcord.modules.mutils.ButtonServer
+import de.miraculixx.mcord.utils.entities.ButtonEvent
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -11,7 +11,7 @@ import net.dv8tion.jda.api.hooks.ListenerAdapter
 
 class ButtonManager : ListenerAdapter() {
 
-    private val buttons = HashMap<String, Buttons>()
+    private val buttons = HashMap<String, ButtonEvent>()
 
     override fun onButtonInteraction(it: ButtonInteractionEvent) {
         val id = it.button.id ?: return
@@ -26,7 +26,7 @@ class ButtonManager : ListenerAdapter() {
     }
 
     init {
-        buttons["deleteUser"] = DeleteUserButton()
-        buttons["connectionManager"] = ServerEditButton()
+        buttons["deleteUser"] = ButtonDeleteUser()
+        buttons["connectionManager"] = ButtonServer()
     }
 }

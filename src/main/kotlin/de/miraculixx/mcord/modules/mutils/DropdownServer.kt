@@ -1,10 +1,10 @@
 package de.miraculixx.mcord.modules.mutils
 
 import de.miraculixx.mcord.utils.KeyInfoDisplays
-import de.miraculixx.mcord.utils.entities.DropDowns
+import de.miraculixx.mcord.utils.entities.DropDownEvent
 import net.dv8tion.jda.api.events.interaction.component.SelectMenuInteractionEvent
 
-class PremiumDropdown : DropDowns {
+class DropdownServer : DropDownEvent {
     override suspend fun trigger(it: SelectMenuInteractionEvent) {
         val tool = KeyInfoDisplays(it.hook, it.jda)
         it.editMessage(tool.await).queue()

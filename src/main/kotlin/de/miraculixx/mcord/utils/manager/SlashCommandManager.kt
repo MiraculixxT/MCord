@@ -4,9 +4,9 @@ import de.miraculixx.mcord.Main
 import de.miraculixx.mcord.modules.utils.commands.AdminCommand
 import de.miraculixx.mcord.modules.utils.commands.LanguageCommand
 import de.miraculixx.mcord.modules.utils.commands.MCTransferCommand
-import de.miraculixx.mcord.modules.mutils.PremiumCommand
+import de.miraculixx.mcord.modules.mutils.CommandAccount
 import de.miraculixx.mcord.utils.entities.LateInit
-import de.miraculixx.mcord.utils.entities.SlashCommands
+import de.miraculixx.mcord.utils.entities.SlashCommandEvent
 import de.miraculixx.mcord.utils.log
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -18,7 +18,7 @@ import net.dv8tion.jda.api.interactions.commands.build.Commands
 
 class SlashCommandManager : ListenerAdapter(), LateInit {
 
-    private val commands = HashMap<String, SlashCommands>()
+    private val commands = HashMap<String, SlashCommandEvent>()
 
     override fun onSlashCommandInteraction(it: SlashCommandInteractionEvent) {
         val commandClass = commands[it.name] ?: return
@@ -31,10 +31,10 @@ class SlashCommandManager : ListenerAdapter(), LateInit {
     override fun setup() {
         //Implement all Command Events
         commands["language"] = LanguageCommand()
-        commands["premium"] = PremiumCommand()
+        commands["premium"] = CommandAccount()
         commands["mc-info"] = MCTransferCommand()
         commands["admin"] = AdminCommand()
-        val keys = PremiumCommand()
+        val keys = CommandAccount()
         commands["key-generate"] = keys
         commands["key-delete"] = keys
         commands["key-info"] = keys

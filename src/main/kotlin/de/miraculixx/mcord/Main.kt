@@ -1,6 +1,7 @@
 package de.miraculixx.mcord
 
 import de.miraculixx.mcord.config.Config
+import de.miraculixx.mcord.modules.utils.Updater
 import de.miraculixx.mcord.modules.utils.events.MessageReactor
 import de.miraculixx.mcord.modules.utils.events.TabComplete
 import de.miraculixx.mcord.utils.log

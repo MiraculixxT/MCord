@@ -3,11 +3,11 @@ package de.miraculixx.mcord.modules.mutils
 import de.miraculixx.mcord.config.Config
 import de.miraculixx.mcord.utils.api.API
 import de.miraculixx.mcord.utils.api.callAPI
-import de.miraculixx.mcord.utils.entities.Buttons
+import de.miraculixx.mcord.utils.entities.ButtonEvent
 import de.miraculixx.mcord.utils.log
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent
 
-class DeleteUserButton: Buttons {
+class ButtonDeleteUser: ButtonEvent {
     override suspend fun trigger(it: ButtonInteractionEvent) {
         val id = it.button.id ?: return
         val split = id.split('_')

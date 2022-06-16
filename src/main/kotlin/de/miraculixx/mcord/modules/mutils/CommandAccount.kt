@@ -4,7 +4,7 @@ import de.miraculixx.mcord.config.Config
 import de.miraculixx.mcord.utils.KeyInfoDisplays
 import de.miraculixx.mcord.utils.api.API
 import de.miraculixx.mcord.utils.api.callAPI
-import de.miraculixx.mcord.utils.entities.SlashCommands
+import de.miraculixx.mcord.utils.entities.SlashCommandEvent
 import kotlinx.coroutines.delay
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
@@ -14,7 +14,7 @@ import net.dv8tion.jda.api.interactions.components.buttons.Button
 import net.dv8tion.jda.api.utils.data.DataObject
 import net.dv8tion.jda.internal.entities.EntityBuilder
 
-class PremiumCommand : SlashCommands {
+class CommandAccount : SlashCommandEvent {
     @kotlinx.serialization.Serializable
     private data class MC(val name: String, val id: String)
 

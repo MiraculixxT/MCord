@@ -4,12 +4,12 @@ import de.miraculixx.mcord.config.Config
 import de.miraculixx.mcord.utils.KeyInfoDisplays
 import de.miraculixx.mcord.utils.api.API
 import de.miraculixx.mcord.utils.api.callAPI
-import de.miraculixx.mcord.utils.entities.Modals
+import de.miraculixx.mcord.utils.entities.ModalEvent
 import de.miraculixx.mcord.utils.messageCache
 import kotlinx.coroutines.delay
 import net.dv8tion.jda.api.events.interaction.ModalInteractionEvent
 
-class RenameModal : Modals {
+class ModalRename : ModalEvent {
     override suspend fun trigger(it: ModalInteractionEvent) {
         val tool = KeyInfoDisplays(it.hook, it.jda)
         val dcID = it.user.id
