@@ -11,10 +11,10 @@ class TabComplete : ListenerAdapter() {
                 event.replyChoiceStrings("german", "english").queue()
             }
             "admin" -> {
-                event.replyChoiceStrings("status").queue()
+                event.replyChoiceStrings("status", "idle-game-info", "idle-game-upgrades").queue()
             }
             "key-update" -> {
-                event.replyChoiceStrings("Booster", "Subscriber", "Unlimited").queue()
+                event.replyChoiceStrings("Booster", "Subscriber", "Unlimited", "Lite").queue()
             }
         }
     }

@@ -1,21 +1,57 @@
+@file:Suppress("unused", "MemberVisibilityCanBePrivate")
+
 package de.miraculixx.mcord.config
 
-import kotlinx.serialization.decodeFromString
-import kotlinx.serialization.json.Json
-import java.io.BufferedReader
+import de.miraculixx.mcord.utils.log
+import org.yaml.snakeyaml.Yaml
+import java.io.File
 
-object Config {
-    @kotlinx.serialization.Serializable
-    data class ConfigData(val API_KEY: String, val DISCORD_TOKEN: String)
+class Config(path: String) {
+    private val yaml: Yaml = Yaml()
+    private val configMap: Map<String, Any>
+    private val name: String
 
-    val apiKey: String
-    val botToken: String
+
+    fun getString(name: String): String {
+        return configMap[name].toString()
+    }
+
+    fun getInt(name: String): Int {
+        return getString(name).toIntOrNull() ?: 0
+    }
+
+    fun getLong(name: String): Long {
+        return getString(name).toLongOrNull() ?: 0
+    }
+
+    fun getBoolean(name: String): Boolean {
+        return getString(name).lowercase() == "true"
+    }
+
+
+    private fun loadConfig(file: File) {
+        ">> Create new Config File - $name".log()
+        val classLoader = this.javaClass.classLoader
+        if (!file.exists()) {
+            file.createNewFile()
+            val stream = classLoader.getResourceAsStream(name)
+            file.writeBytes(stream.readAllBytes())
+        }
+    }
 
     init {
-        val inputStream = javaClass.classLoader.getResourceAsStream("config.json")
-        val fileContent = inputStream.bufferedReader().use(BufferedReader::readText)
-        val configData = Json.decodeFromString<ConfigData>(fileContent)
-        apiKey = configData.API_KEY
-        botToken = configData.DISCORD_TOKEN
+        name = path.substring(path.lastIndexOf("/") + 1)
+        ">> Load Config - $name".log()
+        val file = File(path)
+        if (!file.exists()) loadConfig(file)
+
+        configMap = try {
+            yaml.load(File(path).inputStream())
+        } catch (e: Exception) {
+            e.printStackTrace()
+            "ERROR - Failed to load Configuration File. ^^ Reason above ^^".log()
+            "ERROR - Config Path -> $path".log()
+            emptyMap()
+        }
     }
 }

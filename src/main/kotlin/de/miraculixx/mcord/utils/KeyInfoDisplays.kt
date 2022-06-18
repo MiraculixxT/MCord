@@ -1,6 +1,6 @@
 package de.miraculixx.mcord.utils
 
-import de.miraculixx.mcord.config.Config
+import de.miraculixx.mcord.config.ConfigManager
 import de.miraculixx.mcord.utils.api.API
 import de.miraculixx.mcord.utils.api.callAPI
 import java.sql.Timestamp
@@ -17,6 +17,21 @@ import net.dv8tion.jda.api.interactions.components.buttons.Button
 import net.dv8tion.jda.api.interactions.components.selections.SelectMenu
 import net.dv8tion.jda.api.utils.data.DataObject
 import net.dv8tion.jda.internal.entities.EntityBuilder
+
+suspend fun getUser(id: String): KeyInfoDisplays.User? {
+    val json = callAPI(API.MUTILS, "admin.php?call=user&pw=${ConfigManager.apiKey}&dc=$id")
+    if (json.isEmpty() || json.startsWith("error")) {
+
+        return null
+    }
+    return try {
+        Json.decodeFromString(json)
+    } catch (e: Exception) {
+        println("ERROR - Json Parser hat verkackt")
+        println(json)
+        null
+    }
+}
 
 class KeyInfoDisplays(private val hook: InteractionHook, private val jda: JDA) {
     val await = "<a:loading:972893675145265262> Communicating with Service..."
@@ -50,7 +65,7 @@ class KeyInfoDisplays(private val hook: InteractionHook, private val jda: JDA) {
     }
 
     suspend fun serverInfo(sourceMessage: Message, userID: String, ip: String, update: Boolean = false, dcID: String = "0") {
-        val response = callAPI(API.MUTILS, "admin.php?call=singleconnection&pw=${Config.apiKey}&id=$userID&ip=$ip")
+        val response = callAPI(API.MUTILS, "admin.php?call=singleconnection&pw=${ConfigManager.apiKey}&id=$userID&ip=$ip")
         val connection = Json.decodeFromString<Connection>(response)
         val versionSplit = connection.serverVersion?.split('_')
         val serverSoftware = if ((versionSplit?.size ?: 0) > 1) versionSplit?.get(0) ?: "*Unbekannt*" else "*Unbekannt*"
@@ -125,25 +140,10 @@ class KeyInfoDisplays(private val hook: InteractionHook, private val jda: JDA) {
         val latest: String,
     )
 
-    suspend fun getUser(id: String): User? {
-        val json = callAPI(API.MUTILS, "admin.php?call=user&pw=${Config.apiKey}&dc=$id")
-        if (json.isEmpty() || json.startsWith("error")) {
-
-            return null
-        }
-        return try {
-            Json.decodeFromString(json)
-        } catch (e: Exception) {
-            println("ERROR - Json Parser hat verkackt")
-            println(json)
-            null
-        }
-    }
-
     private suspend fun getDropDown(id: Int, key: String, max: Int): SelectMenu? {
         val builder = SelectMenu.create("editcons_${id}_${key}")
         builder.maxValues = 1
-        val response = callAPI(API.MUTILS, "admin.php?call=connections&pw=${Config.apiKey}&id=${id}")
+        val response = callAPI(API.MUTILS, "admin.php?call=connections&pw=${ConfigManager.apiKey}&id=${id}")
         val empty = response.contains("NO_ENTRYS")
         if (response.startsWith("error") && !empty) {
             delay(5000)

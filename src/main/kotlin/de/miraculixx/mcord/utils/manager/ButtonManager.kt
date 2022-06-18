@@ -1,5 +1,7 @@
 package de.miraculixx.mcord.utils.manager
 
+import de.miraculixx.mcord.modules.games.idle.ButtonLoadBuildings
+import de.miraculixx.mcord.modules.games.idle.ButtonLoadUpgrades
 import de.miraculixx.mcord.modules.mutils.ButtonDeleteUser
 import de.miraculixx.mcord.modules.mutils.ButtonServer
 import de.miraculixx.mcord.utils.entities.ButtonEvent
@@ -28,5 +30,7 @@ class ButtonManager : ListenerAdapter() {
     init {
         buttons["deleteUser"] = ButtonDeleteUser()
         buttons["connectionManager"] = ButtonServer()
+        buttons["GIdle_LoadUpgrades"] = ButtonLoadUpgrades()
+        buttons["GIdle_LoadBuildings"] = ButtonLoadBuildings()
     }
 }

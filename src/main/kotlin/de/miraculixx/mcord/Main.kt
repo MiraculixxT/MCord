@@ -1,6 +1,8 @@
 package de.miraculixx.mcord
 
-import de.miraculixx.mcord.config.Config
+import de.miraculixx.mcord.config.ConfigManager
+import de.miraculixx.mcord.config.Configs
+import de.miraculixx.mcord.modules.mutils.EventRoleReceive
 import de.miraculixx.mcord.modules.utils.Updater
 import de.miraculixx.mcord.modules.utils.events.MessageReactor
 import de.miraculixx.mcord.modules.utils.events.TabComplete
@@ -22,6 +24,9 @@ import net.dv8tion.jda.api.JDABuilder
 import net.dv8tion.jda.api.OnlineStatus
 import net.dv8tion.jda.api.entities.Activity
 import net.dv8tion.jda.api.requests.GatewayIntent
+import net.dv8tion.jda.api.utils.ChunkingFilter
+import net.dv8tion.jda.api.utils.MemberCachePolicy
+import net.dv8tion.jda.api.utils.cache.CacheFlag
 
 fun main() {
     Main()
@@ -34,20 +39,26 @@ class Main {
         lateinit var KTOR: HttpClient
     }
 
-    private val updater: Job
+    private val updater: Job?
     var jda: JDA? = null
 
     init {
         INSTANCE = this
         KTOR = HttpClient(CIO)
 
-        val builder = JDABuilder.createDefault(Config.botToken)
-        //builder.disableCache(CacheFlag.VOICE_STATE)
+        val coreConf = ConfigManager.getConfig(Configs.CORE)
+        val settingsConf = ConfigManager.getConfig(Configs.SETTINGS)
+        val builder = JDABuilder.createDefault(coreConf.getString("DISCORD_TOKEN"))
+        builder.disableCache(CacheFlag.VOICE_STATE)
         builder.setActivity(Activity.listening("Miraculixx's complains"))
         builder.setStatus(OnlineStatus.IDLE)
         builder.enableIntents(GatewayIntent.GUILD_MESSAGES, GatewayIntent.GUILD_MEMBERS)
+        builder.setMemberCachePolicy(MemberCachePolicy.ALL)
         val lateInits = listOf(SlashCommandManager())
-        builder.addEventListeners(lateInits[0], ButtonManager(), TabComplete(), DropDownManager(), ModalManager(), MessageReactor())
+        builder.addEventListeners(ButtonManager(), TabComplete(), DropDownManager(), ModalManager(), MessageReactor(), EventRoleReceive())
+        lateInits.forEach { builder.addEventListeners(it) }
+
+        builder.setChunkingFilter(ChunkingFilter.include(908621996009619477))
 
         jda = builder.build()
         jda!!.awaitReady()
@@ -57,7 +68,8 @@ class Main {
             it.setup()
         }
 
-        updater = Updater.start(jda!!)
+        updater = if (settingsConf.getBoolean("Updater"))
+             Updater.start(jda!!) else null
         "MKord is now online!".log()
 
         shutdown()
@@ -75,7 +87,7 @@ class Main {
                         jda?.shardManager?.setStatus(OnlineStatus.OFFLINE)
                         jda?.shutdown()
                         KTOR.close()
-                        updater.cancel()
+                        updater?.cancel()
                         println("MKord is now offline!")
                         return@runBlocking
                     }

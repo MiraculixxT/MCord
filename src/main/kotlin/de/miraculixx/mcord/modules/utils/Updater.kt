@@ -1,30 +1,26 @@
+@file:Suppress("LABEL_NAME_CLASH")
+
 package de.miraculixx.mcord.modules.utils
 
-import de.miraculixx.mcord.config.Config
+import de.miraculixx.mcord.config.ConfigManager
 import de.miraculixx.mcord.utils.KeyInfoDisplays
 import de.miraculixx.mcord.utils.api.API
 import de.miraculixx.mcord.utils.api.callAPI
 import de.miraculixx.mcord.utils.log
-import java.sql.Timestamp
-import java.util.Calendar
-import kotlin.time.Duration.Companion.hours
-import kotlin.time.Duration.Companion.seconds
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.isActive
-import kotlinx.coroutines.joinAll
-import kotlinx.coroutines.launch
+import de.miraculixx.mcord.utils.notifyRankRemoved
+import kotlinx.coroutines.*
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
 import net.dv8tion.jda.api.JDA
 import net.dv8tion.jda.api.entities.Emoji
-import net.dv8tion.jda.api.entities.Guild
 import net.dv8tion.jda.api.entities.UserSnowflake
 import net.dv8tion.jda.api.interactions.components.buttons.Button
 import net.dv8tion.jda.api.utils.data.DataObject
 import net.dv8tion.jda.internal.entities.EntityBuilder
+import java.sql.Timestamp
+import java.util.*
+import kotlin.time.Duration.Companion.hours
+import kotlin.time.Duration.Companion.seconds
 
 object Updater {
     private var JDA: JDA? = null
@@ -35,7 +31,10 @@ object Updater {
             val mcreate = jda.getGuildById(908621996009619477)
             val statsChannel = mcreate?.getTextChannelById(975782593997963274)!!
             val mira = jda.getGuildById(707925156919771158)
-            val apiKey = Config.apiKey
+            val apiKey = ConfigManager.apiKey
+            val sub = 938898054151561226
+            val unlimited = 987015931828002887
+            val lite = 987017400983646278
 
             while (isActive) {
                 "--=--=--=-->> Start Data Update <<--=--=--=--".log()
@@ -43,10 +42,6 @@ object Updater {
                 //Update data from Server
                 val response = callAPI(API.MUTILS, "admin.php?call=ranks&pw=${apiKey}")
                 val ranks = Json.decodeFromString<List<KeyInfoDisplays.Rank>>(response)
-                val buttons = listOf(
-                    Button.link("https://mutils.de/dc", "MCreate").withEmoji(Emoji.fromEmote("mutils", 975780449903341579, false)),
-                    Button.link("https://mutils.de/m/shop", "Slots Shop").withEmoji(Emoji.fromUnicode("\uD83D\uDED2"))
-                )
                 ">> Check ${ranks.size} Ranks...".log()
                 val rankUpdater = launch {
                     ranks.map { rank ->
@@ -56,32 +51,51 @@ object Updater {
                                 val expire = Timestamp.valueOf(date).time
                                 val current = Calendar.getInstance().timeInMillis
                                 if (expire <= current) {
-                                    removeRank(rank, buttons, mcreate)
+                                    notifyRankRemoved(rank, jda, mcreate)
                                 }
                             } else {
                                 val user = Json.decodeFromString<KeyInfoDisplays.User>(callAPI(API.MUTILS, "admin.php?call=user&pw=${apiKey}&id=${rank.id}"))
+                                val snowflake = UserSnowflake.fromId(user.dc)
+                                val member = mcreate.retrieveMember(snowflake).complete()
+                                val roles = member?.roles?.map { it.idLong }
+                                val userRanks = user.ranks?.toMutableList()
+                                if (roles == null) {
+                                    "ERROR - Roles is Empty on ${member.user.asTag}".log()
+                                    return@launch
+                                }
                                 when (rank.type) {
                                     "Subscriber" -> {
-                                        val member = mcreate.retrieveMember(UserSnowflake.fromId(user.dc)).complete()
-                                        val isSub = member?.roles?.contains(mcreate.getRoleById(938898054151561226)) ?: false
+                                        val isSub = roles.contains(sub)
                                         if (!isSub) {
-                                            removeRank(rank, buttons, mcreate)
+                                            notifyRankRemoved(rank, jda, mcreate)
+                                            userRanks?.remove(rank)
                                         }
                                     }
                                     "Boosting" -> {
-                                        val member = mcreate.retrieveMember(UserSnowflake.fromId(user.dc)).complete()
-                                        val member2 = mira?.retrieveMember(UserSnowflake.fromId(user.dc))?.complete()
-                                        if (member?.isBoosting != true && member2?.isBoosting != true) {
-                                            removeRank(rank, buttons, mcreate)
+                                        val member2 = mira?.retrieveMember(snowflake)?.complete()
+                                        if (!member.isBoosting && member2?.isBoosting != true) {
+                                            notifyRankRemoved(rank, jda, mcreate)
+                                            userRanks?.remove(rank)
                                         }
                                     }
                                     "Unlimited" -> {
-                                        val member = mcreate.retrieveMember(UserSnowflake.fromId(user.dc)).complete()
-                                        val isPremium = member?.roles?.contains(mcreate.getRoleById(909192161386430484)) ?: false
+                                        val isPremium = roles.contains(unlimited)
                                         if (!isPremium) {
-                                            removeRank(rank, buttons, mcreate)
+                                            notifyRankRemoved(rank, jda, mcreate)
+                                            userRanks?.remove(rank)
                                         }
                                     }
+                                    "Lite" -> {
+                                        val isLite = roles.contains(lite)
+                                        if (!isLite) {
+                                            notifyRankRemoved(rank, jda, mcreate)
+                                            userRanks?.remove(rank)
+                                        }
+                                    }
+                                }
+                                if (userRanks?.size == 0) {
+                                    mcreate.removeRoleFromMember(snowflake, jda.getRoleById(909192161386430484) ?: return@launch).queue()
+                                    " |-> No ranks left. Premium Display Role removed".log()
                                 }
                             }
                         }
@@ -116,28 +130,5 @@ object Updater {
                 delay(1.hours)
             }
         }
-    }
-
-    private suspend fun removeRank(rank: KeyInfoDisplays.Rank, buttons: List<Button>, mcreate: Guild?) {
-        ">> Rank Remover -> ${rank.id} ${rank.type}".log()
-
-        val id = callAPI(API.MUTILS, "admin.php?call=removerank&pw=${Config.apiKey}&type=${rank.type}&id=${rank.id}")
-        val user = JDA!!.retrieveUserById(id).complete()
-        val expireDate = rank.expireDate
-        val timestamp = if (expireDate == "never") "<t:${System.currentTimeMillis().div(1000)}:F>"
-        else "<t:${Timestamp.valueOf(rank.expireDate).time.div(1000)}:F>"
-        try {
-            user.openPrivateChannel().complete()
-                ?.sendMessage(" ")?.setEmbeds(
-                    EntityBuilder(JDA).createMessageEmbed(
-                        DataObject.fromJson("{\"type\":\"rich\",\"title\":\"MUtils Account Update\",\"description\":\"Leider ist ein Rang von dir gerade abgelaufen... Damit wurde deine maximale Slot Anzahl verringert und möglicherweise Serververbindungen gelöscht. Für mehr Informationen gebe auf dem [MCreate Discord](https://mutils.de/dc) `/key-info` ein.\",\"color\":36637,\"fields\":[{\"name\":\"Abgelaufener Rang\",\"value\":\"> Name `->` ${rank.type}\\n> Slots `->` ${rank.slots}\\n> Abgelaufen am`->` ${timestamp}\",\"inline\":true}],\"footer\":{\"text\":\"MUtils - The Ultimate Challenge-Utility Plugin!\",\"icon_url\":\"https://i.imgur.com/xe2N5eF.png\"}}")
-                    )
-                )?.setActionRow(buttons)?.queue()
-        } catch (e: Exception) {
-            mcreate?.getTextChannelById(908839500527050804)
-                ?.sendMessage("${user.asMention} Du hast eine private Benachrichtigung erhalten, jedoch sind deine Direktnachrichten deaktiviert! Du kannst dies in den Privatsphäre Einstellungen umstellen")
-            " |-> User ${user.asTag} has disabled DM's".log()
-        }
-
     }
 }

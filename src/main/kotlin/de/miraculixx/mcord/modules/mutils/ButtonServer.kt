@@ -1,6 +1,6 @@
 package de.miraculixx.mcord.modules.mutils
 
-import de.miraculixx.mcord.config.Config
+import de.miraculixx.mcord.config.ConfigManager
 import de.miraculixx.mcord.utils.KeyInfoDisplays
 import de.miraculixx.mcord.utils.api.API
 import de.miraculixx.mcord.utils.api.callAPI
@@ -63,7 +63,7 @@ class ButtonServer : ButtonEvent {
                 val tool = KeyInfoDisplays(hook, it.jda)
                 disableAll(it, tool.await)
                 val overviewButton = Button.primary("conButtonBack_${userID}_$ip", "Back to Overview").withEmoji(Emoji.fromUnicode("✖"))
-                callAPI(API.MUTILS, "admin.php?call=deleteconnection&pw=${Config.apiKey}&id=$userID&ip=$ip")
+                callAPI(API.MUTILS, "admin.php?call=deleteconnection&pw=${ConfigManager.apiKey}&id=$userID&ip=$ip")
                 delay(1000)
 
                 hook.editOriginal(
@@ -88,6 +88,7 @@ class ButtonServer : ButtonEvent {
         }
     }
 
+    @Suppress("SameParameterValue")
     private fun disableAll(it: ButtonInteractionEvent, await: String) {
         val rows = ArrayList<ActionRow>()
         val message = it.message

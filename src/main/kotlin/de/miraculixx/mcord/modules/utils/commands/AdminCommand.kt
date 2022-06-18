@@ -7,6 +7,7 @@ import kotlinx.coroutines.runBlocking
 import net.dv8tion.jda.api.EmbedBuilder
 import net.dv8tion.jda.api.entities.Emoji
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent
+import net.dv8tion.jda.api.interactions.components.buttons.Button
 import net.dv8tion.jda.api.interactions.components.selections.SelectMenu
 
 class AdminCommand : SlashCommandEvent {
@@ -36,13 +37,66 @@ class AdminCommand : SlashCommandEvent {
                         val embed = EmbedBuilder()
                             .setColor(0x1CE721)
                             .setTitle("\uD83D\uDCDD | Vorschläge Einsenden")
-                            .setDescription("Sende Vorschläge für verschiedene Kategorisieren ein! Alle Vorschläge werden für alle Sichtbar in den jeweiligen Channel gepostet\n" +
-                                    "\n⚠️ **Achtung**\n" +
-                                    "- Prüfe bitte, dass keine Dopplungen entstehen\n" +
-                                    "- Troll oder Missbrauch wird führt zu einer Sperre")
+                            .setDescription(
+                                "Sende Vorschläge für verschiedene Kategorisieren ein! Alle Vorschläge werden für alle Sichtbar in den jeweiligen Channel gepostet\n" +
+                                        "\n⚠️ **Achtung**\n" +
+                                        "- Prüfe bitte, dass keine Dopplungen entstehen\n" +
+                                        "- Troll oder Missbrauch wird führt zu einer Sperre"
+                            )
                         it.textChannel.sendMessageEmbeds(embed.build())
                             .setActionRow(dd.build()).queue()
                         it.reply("fertig").queue()
+                    }
+                    "idle-game-info" -> {
+                        val dd = SelectMenu.create("GIdle_Info")
+                            .addOption("Game Info", "gameinfo", "Was ist Idle Builder und was kann ich hier machen?", Emoji.fromUnicode("\uD83C\uDF34"))
+                            .addOption("Upgrades", "upgrades", "Was sind Upgrades und wie funktionieren diese?", Emoji.fromUnicode("\uD83D\uDD3A"))
+                            .addOption("Buildings", "buildings", "Was sind Buildings und wie funktionieren diese?", Emoji.fromUnicode("\uD83C\uDFD7️"))
+                            .addOption("Prestige", "prestige", "Was sind Prestige Vorgänge und was bewirken diese?", Emoji.fromUnicode("\uD83D\uDC8E"))
+                        dd.maxValues = 1
+                        dd.minValues = 1
+                        dd.placeholder = "Informationen und Hilfe zu Idle Builder"
+                        val embed = EmbedBuilder()
+                            .setColor(0xEEA82D)
+                            .setTitle("\uD83C\uDF34 | Idle Builder Informationen")
+                            .setDescription("Idle Builder ist ein Idle Game, welches auf Discord getestet wird um irgendwann mal als vollwertiges Spiel veröffentlicht zu werden")
+                        it.textChannel.sendMessageEmbeds(embed.build())
+                            .setActionRow(dd.build()).queue()
+                        it.reply("fertig").queue()
+                    }
+                    "idle-game-upgrades" -> {
+                        val upgradeMessage = it.textChannel.sendMessageEmbeds(
+                            EmbedBuilder()
+                                .setColor(0xEEA82D)
+                                .setTitle("\uD83D\uDD3A | Upgrades")
+                                .setDescription("Hier stehen Informationen zu Upgrades")
+                                .build()
+                        ).complete()
+
+                        val buildingMessage = it.textChannel.sendMessageEmbeds(
+                            EmbedBuilder()
+                                .setColor(0xEEA82D)
+                                .setTitle("\uD83C\uDFD7 | Buildings")
+                                .setDescription("Hier stehen Informationen zu Buildings")
+                                .build()
+                        ).complete()
+
+                        val threadUpgrades = upgradeMessage.createThreadChannel("\uD83D\uDD3A | Upgrades").complete()
+                        val threadBuildings = buildingMessage.createThreadChannel("\uD83C\uDFD7️ | Buildings").complete()
+
+                        val buttonUpgrades = threadUpgrades.sendMessageEmbeds(
+                            EmbedBuilder().setDescription("Baum").build()
+                        ).setActionRow(
+                            Button.primary("GIdle_LoadUpgrades", "Lade deine Upgrades").withEmoji(Emoji.fromUnicode("\uD83C\uDFF7️"))
+                        ).complete()
+                        val buttonBuildings = threadBuildings.sendMessage(" ").setEmbeds(
+                            EmbedBuilder().setDescription("Baum").build()
+                        ).setActionRow(
+                            Button.primary("GIdle_LoadBuildings", "Lade deine Buildings").withEmoji(Emoji.fromUnicode("\uD83C\uDFF7️"))
+                        ).complete()
+
+                        buttonBuildings.suppressEmbeds(true).queue()
+                        buttonUpgrades.suppressEmbeds(true).queue()
                     }
                 }
             }

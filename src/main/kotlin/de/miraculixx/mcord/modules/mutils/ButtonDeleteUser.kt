@@ -1,6 +1,6 @@
 package de.miraculixx.mcord.modules.mutils
 
-import de.miraculixx.mcord.config.Config
+import de.miraculixx.mcord.config.ConfigManager
 import de.miraculixx.mcord.utils.api.API
 import de.miraculixx.mcord.utils.api.callAPI
 import de.miraculixx.mcord.utils.entities.ButtonEvent
@@ -14,7 +14,7 @@ class ButtonDeleteUser: ButtonEvent {
         val userID = split[1]
         val userKey = split[2]
 
-        callAPI(API.MUTILS, "admin.php?call=deleteuser&pw=${Config.apiKey}&id=$userID&key=$userKey")
+        callAPI(API.MUTILS, "admin.php?call=deleteuser&pw=${ConfigManager.apiKey}&id=$userID&key=$userKey")
         it.editButton(it.button.asDisabled()).queue()
         val hook = it.hook
         hook.editOriginal("**Account Daten gelöscht**\nSchade dass du uns verlässt <:Sadge:820962368166428683> Die Zeit mit dir war schön...").queue()

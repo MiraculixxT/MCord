@@ -1,6 +1,6 @@
 package de.miraculixx.mcord.modules.mutils
 
-import de.miraculixx.mcord.config.Config
+import de.miraculixx.mcord.config.ConfigManager
 import de.miraculixx.mcord.utils.KeyInfoDisplays
 import de.miraculixx.mcord.utils.api.API
 import de.miraculixx.mcord.utils.api.callAPI
@@ -29,7 +29,7 @@ class ModalRename : ModalEvent {
         }
         it.editMessage(tool.await).queue()
 
-        callAPI(API.MUTILS, "admin.php?call=updateconnection&pw=${Config.apiKey}&id=${id[1]}&ip=${id[2]}&name=$content")
+        callAPI(API.MUTILS, "admin.php?call=updateconnection&pw=${ConfigManager.apiKey}&id=${id[1]}&ip=${id[2]}&name=$content")
         tool.serverInfo(message, id[1], id[2], true, dcID)
         println("${it.user.asTag} -> RENAME - ${id[2]} - $content")
     }
