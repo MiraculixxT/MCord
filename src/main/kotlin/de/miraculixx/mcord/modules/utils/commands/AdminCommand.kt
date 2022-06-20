@@ -12,7 +12,6 @@ import net.dv8tion.jda.api.interactions.components.selections.SelectMenu
 
 class AdminCommand : SlashCommandEvent {
     override suspend fun trigger(it: SlashCommandInteractionEvent) {
-        if (it.user.name != "Miraculixx") return
         runBlocking {
             launch {
                 when (it.getOption("call")?.asString) {
@@ -47,7 +46,8 @@ class AdminCommand : SlashCommandEvent {
                             .setActionRow(dd.build()).queue()
                         it.reply("fertig").queue()
                     }
-                    "idle-game-info" -> {
+                    "idle-game" -> {
+                        //Game Info
                         val dd = SelectMenu.create("GIdle_Info")
                             .addOption("Game Info", "gameinfo", "Was ist Idle Builder und was kann ich hier machen?", Emoji.fromUnicode("\uD83C\uDF34"))
                             .addOption("Upgrades", "upgrades", "Was sind Upgrades und wie funktionieren diese?", Emoji.fromUnicode("\uD83D\uDD3A"))
@@ -62,9 +62,8 @@ class AdminCommand : SlashCommandEvent {
                             .setDescription("Idle Builder ist ein Idle Game, welches auf Discord getestet wird um irgendwann mal als vollwertiges Spiel veröffentlicht zu werden")
                         it.textChannel.sendMessageEmbeds(embed.build())
                             .setActionRow(dd.build()).queue()
-                        it.reply("fertig").queue()
-                    }
-                    "idle-game-upgrades" -> {
+
+                        //Upgrades & Buildings
                         val upgradeMessage = it.textChannel.sendMessageEmbeds(
                             EmbedBuilder()
                                 .setColor(0xEEA82D)
@@ -97,6 +96,13 @@ class AdminCommand : SlashCommandEvent {
 
                         buttonBuildings.suppressEmbeds(true).queue()
                         buttonUpgrades.suppressEmbeds(true).queue()
+                    }
+                    "delete-threads" -> {
+                        val threads = it.textChannel.threadChannels
+                        it.reply("Deleting ${threads.size} Threads").setEphemeral(true).queue()
+                        threads.forEach {
+                            it.delete().queue()
+                        }
                     }
                 }
             }

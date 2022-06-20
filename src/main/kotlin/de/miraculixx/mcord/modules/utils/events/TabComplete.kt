@@ -11,7 +11,7 @@ class TabComplete : ListenerAdapter() {
                 event.replyChoiceStrings("german", "english").queue()
             }
             "admin" -> {
-                event.replyChoiceStrings("status", "idle-game-info", "idle-game-upgrades").queue()
+                event.replyChoiceStrings("status", "delete-threads", "idle-game").queue()
             }
             "key-update" -> {
                 event.replyChoiceStrings("Booster", "Subscriber", "Unlimited", "Lite").queue()

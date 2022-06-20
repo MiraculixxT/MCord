@@ -1,6 +1,7 @@
 package de.miraculixx.mcord.utils.manager
 
 import de.miraculixx.mcord.Main
+import de.miraculixx.mcord.modules.games.tictactoe.TTTCommand
 import de.miraculixx.mcord.modules.utils.commands.AdminCommand
 import de.miraculixx.mcord.modules.utils.commands.LanguageCommand
 import de.miraculixx.mcord.modules.utils.commands.MCTransferCommand
@@ -39,6 +40,7 @@ class SlashCommandManager : ListenerAdapter(), LateInit {
         commands["key-delete"] = keys
         commands["key-info"] = keys
         commands["key-update"] = keys
+        commands["tictactoe"] = TTTCommand()
 
         //Implement all Commands into Discord
         val jda = Main.INSTANCE.jda!!
@@ -69,7 +71,9 @@ class SlashCommandManager : ListenerAdapter(), LateInit {
                     .addOption(OptionType.STRING, "name", "Der Name kann jederzeit geändert werden (mit Cooldown)"),
                 Commands.slash("admin", "A Admin only command for testing")
                     .addOption(OptionType.STRING, "call", "Action to do", true, true)
-                    .addOption(OptionType.BOOLEAN, "status", "Switch Online Status of MUtils")
+                    .addOption(OptionType.BOOLEAN, "status", "Switch Online Status of MUtils"),
+                Commands.slash("tictactoe", "Spiele Tic-Tac-Toe gegen einen anderen Nutzer")
+                    .addOption(OptionType.USER, "user", "Gegen welchen Spieler willst du spielen?", true)
             ).queue()
         jda.updateCommands().queue()
     }

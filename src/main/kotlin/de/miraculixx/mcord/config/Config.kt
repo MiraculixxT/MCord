@@ -40,7 +40,7 @@ class Config(path: String) {
     }
 
     init {
-        name = path.substring(path.lastIndexOf("/") + 1)
+        name = path.substring(path.lastIndexOf('/') + 1)
         ">> Load Config - $name".log()
         val file = File(path)
         if (!file.exists()) loadConfig(file)

@@ -1,5 +1,6 @@
 package de.miraculixx.mcord.utils.manager
 
+import de.miraculixx.mcord.modules.games.GameManager
 import de.miraculixx.mcord.modules.games.idle.ButtonLoadBuildings
 import de.miraculixx.mcord.modules.games.idle.ButtonLoadUpgrades
 import de.miraculixx.mcord.modules.mutils.ButtonDeleteUser
@@ -20,6 +21,7 @@ class ButtonManager : ListenerAdapter() {
         val commandClass = when {
             id.startsWith("deleteuser_") -> buttons["deleteUser"] ?: return
             id.startsWith("conButton") -> buttons["connectionManager"] ?: return
+            id.startsWith("GAME_TTT") -> GameManager
             else -> buttons[id] ?: return
         }
         CoroutineScope(Dispatchers.Default).launch {

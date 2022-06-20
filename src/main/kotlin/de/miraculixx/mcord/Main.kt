@@ -2,6 +2,7 @@ package de.miraculixx.mcord
 
 import de.miraculixx.mcord.config.ConfigManager
 import de.miraculixx.mcord.config.Configs
+import de.miraculixx.mcord.modules.games.GameManager
 import de.miraculixx.mcord.modules.mutils.EventRoleReceive
 import de.miraculixx.mcord.modules.utils.Updater
 import de.miraculixx.mcord.modules.utils.events.MessageReactor
@@ -84,10 +85,11 @@ class Main {
             while (line != null) {
                 when (line) {
                     "exit" -> {
-                        jda?.shardManager?.setStatus(OnlineStatus.OFFLINE)
-                        jda?.shutdown()
                         KTOR.close()
                         updater?.cancel()
+                        GameManager.shutdown()
+                        jda?.shardManager?.setStatus(OnlineStatus.OFFLINE)
+                        jda?.shutdown()
                         println("MKord is now offline!")
                         return@runBlocking
                     }
