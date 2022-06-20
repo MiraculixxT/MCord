@@ -16,6 +16,7 @@ import net.dv8tion.jda.api.interactions.components.ActionRow
 import net.dv8tion.jda.api.interactions.components.buttons.Button
 import net.dv8tion.jda.api.interactions.components.selections.SelectMenu
 import java.util.*
+import kotlin.collections.ArrayList
 import kotlin.random.Random
 import kotlin.time.Duration.Companion.seconds
 
@@ -66,11 +67,8 @@ class FIARGame(private val member1: Member, private val member2: Member, private
         return builder.build()
     }
 
-    private fun calcButtons(): SelectMenu {
-        val dd = SelectMenu.create("GAME_4G_P_$uuid")
-        dd.maxValues = 1
-        dd.minValues = 1
-        dd.placeholder = "Wähle einen Slot aus"
+    private fun calcButtons(): List<ActionRow> {
+        val buttons = ArrayList<Button>()
 
         if (winner == null) {
             var columnI = 1
@@ -78,33 +76,23 @@ class FIARGame(private val member1: Member, private val member2: Member, private
             columns.forEach { column ->
                 val playableSlot = column.lastIndexOf(FieldsTwoPlayer.EMPTY)
                 if (playableSlot != -1) {
-                    val slot = numberToChar(columnI)
-                    dd.addOption(
-                        "Spalte $slot - Reihe ${playableSlot.plus(1)} ($slot${playableSlot.plus(1)})",
-                        "${columnI.minus(1)}-$playableSlot"
-                    )
+                    buttons.add(Button.secondary("${columnI.minus(1)}-$playableSlot", columnI.toString()))
                 }
                 columnI++
             }
         } else {
-            dd.addOption("Baum","Baum")
-            dd.isDisabled = true
+            (1..7).forEach {
+                buttons.add(Button.secondary("Baum$it", it.toString()))
+            }
         }
-        return dd.build()
+        val blanc = Emoji.fromMarkdown("<:blanc:784059217890770964>")
+        val row1 = ActionRow.of(buttons[1], buttons[2], buttons[3], buttons[4], buttons[5])
+        val row2 = ActionRow.of(buttons[0], Button.primary("BLANC1", blanc).asDisabled(),
+            Button.primary("BLANC2", blanc).asDisabled(), Button.primary("BLANC3", blanc).asDisabled(), buttons[6])
+
+        return listOf(row1, row2)
     }
 
-    private fun numberToChar(i: Int): Char {
-        return when (i) {
-            1 -> 'A'
-            2 -> 'B'
-            3 -> 'C'
-            4 -> 'D'
-            5 -> 'E'
-            6 -> 'F'
-            7 -> 'G'
-            else -> 'Z'
-        }
-    }
 
     private fun fieldToEmote(field: FieldsTwoPlayer): String {
         return when (field) {
@@ -186,8 +174,8 @@ class FIARGame(private val member1: Member, private val member2: Member, private
             GameManager.tttGames.remove(uuid)
         }
         val selector = calcButtons()
-        message.editMessageEmbeds(calcEmbed()).setActionRow(selector).complete()
-        threadMessage.editMessageComponents(ActionRow.of(selector)).complete()
+        message.editMessageEmbeds(calcEmbed()).setActionRows(selector).complete()
+        threadMessage.editMessageComponents(selector).complete()
         event.editMessage(event.message.contentRaw).queue()
         if (winner != null) launch {
             delay(30.seconds)
@@ -197,7 +185,7 @@ class FIARGame(private val member1: Member, private val member2: Member, private
 
     fun setWinner(win: FieldsTwoPlayer) {
         winner = win
-        message.editMessageEmbeds(calcEmbed()).setActionRow(calcButtons()).queue()
+        message.editMessageEmbeds(calcEmbed()).setActionRows(calcButtons()).queue()
         thread.delete().queue()
     }
 
@@ -212,9 +200,9 @@ class FIARGame(private val member1: Member, private val member2: Member, private
         val channel = guildMiraculixx.getTextChannelById(GameManager.fourWinsChannel)!!
         val selector = calcButtons()
         message = channel.sendMessageEmbeds(calcEmbed())
-            .setActionRow(selector).complete()
+            .setActionRows(selector).complete()
         thread = message.createThreadChannel("4G - ${member1.user.name} vs ${member2.user.name}").complete()
-        threadMessage = thread.sendMessage(" \u1CBC ").setActionRow(selector).complete()
+        threadMessage = thread.sendMessage(" \u1CBC ").setActionRows(selector).complete()
         thread.addThreadMember(member1).complete()
         thread.addThreadMember(member2).complete()
         val mention = if (whoPlays) member1.asMention else member2.asMention
