@@ -1,5 +1,6 @@
 package de.miraculixx.mcord.utils.manager
 
+import de.miraculixx.mcord.modules.games.GameManager
 import de.miraculixx.mcord.modules.games.idle.DropDownHelp
 import de.miraculixx.mcord.modules.mutils.DropdownServer
 import de.miraculixx.mcord.modules.suggest.DropdownSuggest
@@ -18,6 +19,7 @@ class DropDownManager : ListenerAdapter() {
         val id = it.selectMenu.id ?: return
         val commandClass = when {
             id.startsWith("editcons_") -> dropdowns["serverSelect"] ?: return
+            id.startsWith("GAME_") -> GameManager
 
             else -> dropdowns[id] ?: return
         }

@@ -21,7 +21,7 @@ class ButtonManager : ListenerAdapter() {
         val commandClass = when {
             id.startsWith("deleteuser_") -> buttons["deleteUser"] ?: return
             id.startsWith("conButton") -> buttons["connectionManager"] ?: return
-            id.startsWith("GAME_TTT") -> GameManager
+            id.startsWith("GAME_") -> GameManager
             else -> buttons[id] ?: return
         }
         CoroutineScope(Dispatchers.Default).launch {

@@ -7,6 +7,7 @@ import de.miraculixx.mcord.modules.mutils.EventRoleReceive
 import de.miraculixx.mcord.modules.utils.Updater
 import de.miraculixx.mcord.modules.utils.events.MessageReactor
 import de.miraculixx.mcord.modules.utils.events.TabComplete
+import de.miraculixx.mcord.utils.api.SQL
 import de.miraculixx.mcord.utils.log
 import de.miraculixx.mcord.utils.manager.ButtonManager
 import de.miraculixx.mcord.utils.manager.DropDownManager
@@ -71,6 +72,7 @@ class Main {
 
         updater = if (settingsConf.getBoolean("Updater"))
              Updater.start(jda!!) else null
+        SQL
         "MKord is now online!".log()
 
         shutdown()

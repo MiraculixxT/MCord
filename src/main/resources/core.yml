@@ -10,3 +10,7 @@ DISCORD_TOKEN: "<bot-token>"
 # MUtils API Token
 # This Key is privat. Replace it with your own API (needs code changes!)
 API_TOKEN: "<api-token>"
+
+# MariaDB SQL Token
+# This Key is privat. Replace it with your own SQL Key
+SQL_TOKEN: "<sql-token>"

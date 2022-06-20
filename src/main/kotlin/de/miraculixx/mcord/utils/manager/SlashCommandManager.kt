@@ -1,6 +1,7 @@
 package de.miraculixx.mcord.utils.manager
 
 import de.miraculixx.mcord.Main
+import de.miraculixx.mcord.modules.games.fourWins.FIARCommand
 import de.miraculixx.mcord.modules.games.tictactoe.TTTCommand
 import de.miraculixx.mcord.modules.utils.commands.AdminCommand
 import de.miraculixx.mcord.modules.utils.commands.LanguageCommand
@@ -41,6 +42,7 @@ class SlashCommandManager : ListenerAdapter(), LateInit {
         commands["key-info"] = keys
         commands["key-update"] = keys
         commands["tictactoe"] = TTTCommand()
+        commands["4-gewinnt"] = FIARCommand()
 
         //Implement all Commands into Discord
         val jda = Main.INSTANCE.jda!!
@@ -73,6 +75,8 @@ class SlashCommandManager : ListenerAdapter(), LateInit {
                     .addOption(OptionType.STRING, "call", "Action to do", true, true)
                     .addOption(OptionType.BOOLEAN, "status", "Switch Online Status of MUtils"),
                 Commands.slash("tictactoe", "Spiele Tic-Tac-Toe gegen einen anderen Nutzer")
+                    .addOption(OptionType.USER, "user", "Gegen welchen Spieler willst du spielen?", true),
+                Commands.slash("4-gewinnt", "Spiele 4 Gewinnt gegen einen anderen Nutzer")
                     .addOption(OptionType.USER, "user", "Gegen welchen Spieler willst du spielen?", true)
             ).queue()
         jda.updateCommands().queue()

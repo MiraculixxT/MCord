@@ -1,5 +1,6 @@
 package de.miraculixx.mcord.modules.games.tictactoe
 
+import de.miraculixx.mcord.modules.games.FieldsTwoPlayer
 import de.miraculixx.mcord.modules.games.GameManager
 import de.miraculixx.mcord.utils.guildMiraculixx
 import kotlinx.coroutines.coroutineScope
@@ -20,11 +21,13 @@ class TTTGame(private val member1: Member, private val member2: Member, private 
     // Who is playing the next step
     // True - P1 (red) || False - P2 (green)
     private var whoPlays = Random.nextBoolean()
-    private var winner: TTTField? = null
+    private var winner: FieldsTwoPlayer? = null
     private val message: Message
     private val threadMessage: Message
     private val thread: ThreadChannel
-    private val fields = Array(3) { arrayOf(TTTField.EMPTY, TTTField.EMPTY, TTTField.EMPTY) }
+    private val fields = Array(3) {
+        (1..3).map { FieldsTwoPlayer.EMPTY }.toTypedArray()
+    }
 
     private fun calcButtons(): List<ActionRow> {
         val rows = ArrayList<ActionRow>()
@@ -38,10 +41,10 @@ class TTTGame(private val member1: Member, private val member2: Member, private 
             val list = ArrayList<Button>()
             row.forEach { field ->
                 val button = when (field) {
-                    TTTField.EMPTY -> if (winner == null) Button.secondary("GAME_TTT_P_${uuid}_$rowI-$columnI", blancEmote)
+                    FieldsTwoPlayer.EMPTY -> if (winner == null) Button.secondary("GAME_TTT_P_${uuid}_$rowI-$columnI", blancEmote)
                     else Button.secondary("GAME_TTT_$rowI-$columnI", blancEmote).asDisabled()
-                    TTTField.PLAYER_1 -> Button.danger("GAME_TTT_$rowI-$columnI", xEmote).asDisabled()
-                    TTTField.PLAYER_2 -> Button.success("GAME_TTT_$rowI-$columnI", oEmote).asDisabled()
+                    FieldsTwoPlayer.PLAYER_1 -> Button.danger("GAME_TTT_$rowI-$columnI", xEmote).asDisabled()
+                    FieldsTwoPlayer.PLAYER_2 -> Button.success("GAME_TTT_$rowI-$columnI", oEmote).asDisabled()
                 }
                 list.add(button)
                 columnI++
@@ -59,19 +62,19 @@ class TTTGame(private val member1: Member, private val member2: Member, private 
                     "<:oo:988156473274163200> - Spieler Grün ${member2.asMention}")
         if (winner != null) {
             val message = when (winner!!) {
-                TTTField.EMPTY -> "Unentschieden"
-                TTTField.PLAYER_1 -> "${member1.asMention} hat gewonnen!"
-                TTTField.PLAYER_2 -> "${member2.asMention} hat gewonnen!"
+                FieldsTwoPlayer.EMPTY -> "Unentschieden"
+                FieldsTwoPlayer.PLAYER_1 -> "${member1.asMention} hat gewonnen!"
+                FieldsTwoPlayer.PLAYER_2 -> "${member2.asMention} hat gewonnen!"
             }
-            builder.addField("~~                                                                            ~~",
+            builder.addField("~~<                                                                            >~~",
             "> \uD83C\uDFC1 $message", false)
                 .setColor(0x2f3136)
         } else if (whoPlays) {
-            builder.addField("~~                                                                            ~~",
+            builder.addField("~~<                                                                            >~~",
             "> ${member1.asMention} ist am Zug", false)
                 .setColor(0xff0000)
         } else {
-            builder.addField("~~                                                                            ~~",
+            builder.addField("~~<                                                                            >~~",
                 "> ${member2.asMention} ist am Zug", false)
                 .setColor(0x1fff00)
         }
@@ -84,9 +87,9 @@ class TTTGame(private val member1: Member, private val member2: Member, private 
         val msg = "~~========================~~\n\n" +
                 "**\uD83C\uDFC1 || Das Spiel wurde beendet!**\n" +
                 when (winner ?: return) {
-            TTTField.EMPTY -> "Niemand hat gewonnen - Unentschieden"
-            TTTField.PLAYER_1 -> "<:xx:988156472020066324> ${member1.asMention} hat gewonnen!"
-            TTTField.PLAYER_2 -> "<:oo:988156473274163200> ${member2.asMention} hat gewonnen!"
+            FieldsTwoPlayer.EMPTY -> "Niemand hat gewonnen - Unentschieden"
+            FieldsTwoPlayer.PLAYER_1 -> "<:xx:988156472020066324> ${member1.asMention} hat gewonnen!"
+            FieldsTwoPlayer.PLAYER_2 -> "<:oo:988156473274163200> ${member2.asMention} hat gewonnen!"
         }
         thread.sendMessage(msg)
             .setEmbeds(EmbedBuilder().setDescription("Der Spiel-Bereich löscht sich in **30s**").build())
@@ -94,24 +97,24 @@ class TTTGame(private val member1: Member, private val member2: Member, private 
         GameManager.tttGames.remove(uuid)
     }
 
-    private fun getWinner(): TTTField? {
+    private fun getWinner(): FieldsTwoPlayer? {
         //Check rows
         repeat(3) { row ->
             val s = fields[row][0]
-            if (s != TTTField.EMPTY && s == fields[row][1] && s == fields[row][2])
+            if (s != FieldsTwoPlayer.EMPTY && s == fields[row][1] && s == fields[row][2])
                 return s
         }
 
         //Check columns
         repeat(3) { col ->
             val s = fields[0][col]
-            if (s != TTTField.EMPTY && s == fields[1][col] && s == fields[2][col])
+            if (s != FieldsTwoPlayer.EMPTY && s == fields[1][col] && s == fields[2][col])
                 return s
         }
 
         //Check diagonals
         val s = fields[1][1] //middle piece
-        if (s != TTTField.EMPTY) {
+        if (s != FieldsTwoPlayer.EMPTY) {
             if (s == fields[0][0] && s == fields[2][2])
                 return s
             if (s == fields[2][0] && s == fields[0][2])
@@ -120,11 +123,11 @@ class TTTGame(private val member1: Member, private val member2: Member, private 
 
         //Check if tie
         fields.forEach { row ->
-            if (row.contains(TTTField.EMPTY))
+            if (row.contains(FieldsTwoPlayer.EMPTY))
                 return null //No tie
         }
         //If code reaches here - TIE
-        return TTTField.EMPTY
+        return FieldsTwoPlayer.EMPTY
     }
 
     suspend fun interaction(buttonID: String, interactor: Member, event: ButtonInteractionEvent) = coroutineScope {
@@ -138,7 +141,7 @@ class TTTGame(private val member1: Member, private val member2: Member, private 
         val column = splits[1].toInt()
         if (memberID == member1.idLong) {
             if (whoPlays) {
-                fields[row][column] = TTTField.PLAYER_1
+                fields[row][column] = FieldsTwoPlayer.PLAYER_1
                 whoPlays = false
                 thread.sendMessage("${member1.asMention} hat <:xx:988156472020066324> auf Feld **$buttonID** gesetzt.\n" +
                         "> ${member2.asMention} du bist am Zug!").queue()
@@ -148,7 +151,7 @@ class TTTGame(private val member1: Member, private val member2: Member, private 
             }
         } else {
             if (!whoPlays) {
-                fields[row][column] = TTTField.PLAYER_2
+                fields[row][column] = FieldsTwoPlayer.PLAYER_2
                 thread.sendMessage("${member2.asMention} hat <:oo:988156473274163200> auf Feld **$buttonID** gesetzt.\n" +
                         "> ${member1.asMention} du bist am Zug!").queue()
                 whoPlays = true
@@ -168,7 +171,7 @@ class TTTGame(private val member1: Member, private val member2: Member, private 
         }
     }
 
-    fun setWinner(win: TTTField) {
+    fun setWinner(win: FieldsTwoPlayer) {
         winner = win
         message.editMessageEmbeds(calcEmbed()).setActionRows(calcButtons()).queue()
         thread.delete().queue()
