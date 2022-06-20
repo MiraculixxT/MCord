@@ -10,12 +10,10 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import net.dv8tion.jda.api.EmbedBuilder
-import net.dv8tion.jda.api.entities.Member
-import net.dv8tion.jda.api.entities.Message
-import net.dv8tion.jda.api.entities.MessageEmbed
-import net.dv8tion.jda.api.entities.ThreadChannel
+import net.dv8tion.jda.api.entities.*
 import net.dv8tion.jda.api.events.interaction.component.SelectMenuInteractionEvent
 import net.dv8tion.jda.api.interactions.components.ActionRow
+import net.dv8tion.jda.api.interactions.components.buttons.Button
 import net.dv8tion.jda.api.interactions.components.selections.SelectMenu
 import java.util.*
 import kotlin.random.Random
@@ -68,22 +66,29 @@ class FIARGame(private val member1: Member, private val member2: Member, private
         return builder.build()
     }
 
-    private fun calcSelector(): SelectMenu {
+    private fun calcButtons(): SelectMenu {
         val dd = SelectMenu.create("GAME_4G_P_$uuid")
         dd.maxValues = 1
         dd.minValues = 1
         dd.placeholder = "Wähle einen Slot aus"
 
-        var columnI = 1
-        val columns = (0..6).map { i -> (0..4).map { j -> fields[j][i] } }
-        columns.forEach { column ->
-            val playableSlot = column.lastIndexOf(FieldsTwoPlayer.EMPTY)
-            if (playableSlot != -1) {
-                val slot = numberToChar(columnI)
-                dd.addOption("Spalte $slot - Reihe ${playableSlot.plus(1)} ($slot${playableSlot.plus(1)})",
-                    "${columnI.minus(1)}-$playableSlot")
+        if (winner == null) {
+            var columnI = 1
+            val columns = (0..6).map { i -> (0..4).map { j -> fields[j][i] } }
+            columns.forEach { column ->
+                val playableSlot = column.lastIndexOf(FieldsTwoPlayer.EMPTY)
+                if (playableSlot != -1) {
+                    val slot = numberToChar(columnI)
+                    dd.addOption(
+                        "Spalte $slot - Reihe ${playableSlot.plus(1)} ($slot${playableSlot.plus(1)})",
+                        "${columnI.minus(1)}-$playableSlot"
+                    )
+                }
+                columnI++
             }
-            columnI++
+        } else {
+            dd.addOption("Baum","Baum")
+            dd.isDisabled = true
         }
         return dd.build()
     }
@@ -112,12 +117,13 @@ class FIARGame(private val member1: Member, private val member2: Member, private
     private fun checkWinner(player: FieldsTwoPlayer): Boolean {
         val high = fields.size
         val width = fields[0].size
+        val board = (0..6).map { i -> (0..4).map { j -> fields[j][i] } }
 
         // Algorithm joinkt from https://stackoverflow.com/questions/32770321/connect-4-check-for-a-win-algorithm
         // horizontal Check
         for (j in 0 until high - 3) {
             for (i in 0 until width) {
-                if (fields[i][j] == player && fields[i][j+1] == player && fields[i][j+2] == player && fields[i][j+3] == player) {
+                if (board[i][j] == player && board[i][j+1] == player && board[i][j+2] == player && board[i][j+3] == player) {
                     return true
                 }
             }
@@ -125,21 +131,21 @@ class FIARGame(private val member1: Member, private val member2: Member, private
         // vertical Check
         for (i in 0 until width - 3) {
             for (j in 0 until high) {
-                if (fields[i][j] == player && fields[i+1][j] == player && fields[i+2][j] == player && fields[i+3][j] == player)
+                if (board[i][j] == player && board[i+1][j] == player && board[i+2][j] == player && board[i+3][j] == player)
                     return true
             }
         }
         // ascending Diagonal Check
         for (i in 3 until width) {
             for (j in 0 until high - 3) {
-                if (fields[i][j] == player && fields[i-1][j+1] == player && fields[i-2][j+2] == player && fields[i-3][j+3] == player)
+                if (board[i][j] == player && board[i-1][j+1] == player && board[i-2][j+2] == player && board[i-3][j+3] == player)
                     return true
             }
         }
         // descending Diagonal Check
         for (i in 3 until width) {
             for (j in 3 until high) {
-                if (fields[i][j] == player && fields[i-1][j-1] == player && fields[i-2][j-2] == player && fields[i-3][j-3] == player)
+                if (board[i][j] == player && board[i-1][j-1] == player && board[i-2][j-2] == player && board[i-3][j-3] == player)
                     return true
             }
         }
@@ -152,7 +158,7 @@ class FIARGame(private val member1: Member, private val member2: Member, private
             event.reply("```diff\n- Du bist kein Teil dieser Partie!\nStarte eine eigene über /vier-gewinnt <user>```").setEphemeral(true).queue()
             return@coroutineScope
         }
-        if (whoPlays && memberID != member1.idLong || !whoPlays && memberID != member2.idLong) {
+        if ((whoPlays && memberID != member1.idLong) || (!whoPlays && memberID != member2.idLong)) {
             event.reply("```diff\n- Du bist gerade nicht am Zug!```").setEphemeral(true).queue()
             return@coroutineScope
         }
@@ -165,9 +171,21 @@ class FIARGame(private val member1: Member, private val member2: Member, private
         whoPlays = !whoPlays
 
         if (checkWinner(who)) {
-
+            winner = who
+            val replayButton = Button.primary("GAME_4G_R_${member1.id}_${member2.id}", "Revanche").withEmoji(Emoji.fromUnicode("\uD83D\uDD01"))
+            val msg = "~~========================~~\n\n" +
+                    "**\uD83C\uDFC1 || Das Spiel wurde beendet!**\n" +
+                    when (winner ?: FieldsTwoPlayer.EMPTY) {
+                        FieldsTwoPlayer.EMPTY -> "Niemand hat gewonnen - Unentschieden"
+                        FieldsTwoPlayer.PLAYER_1 -> "<:xx:988156472020066324> ${member1.asMention} hat gewonnen!"
+                        FieldsTwoPlayer.PLAYER_2 -> "<:oo:988156473274163200> ${member2.asMention} hat gewonnen!"
+                    }
+            thread.sendMessage(msg)
+                .setEmbeds(EmbedBuilder().setDescription("Der Spiel-Bereich löscht sich in **30s**").build())
+                .setActionRow(replayButton).queue()
+            GameManager.tttGames.remove(uuid)
         }
-        val selector = calcSelector()
+        val selector = calcButtons()
         message.editMessageEmbeds(calcEmbed()).setActionRow(selector).complete()
         threadMessage.editMessageComponents(ActionRow.of(selector)).complete()
         event.editMessage(event.message.contentRaw).queue()
@@ -175,6 +193,12 @@ class FIARGame(private val member1: Member, private val member2: Member, private
             delay(30.seconds)
             thread.delete().queue()
         }
+    }
+
+    fun setWinner(win: FieldsTwoPlayer) {
+        winner = win
+        message.editMessageEmbeds(calcEmbed()).setActionRow(calcButtons()).queue()
+        thread.delete().queue()
     }
 
 
@@ -186,7 +210,7 @@ class FIARGame(private val member1: Member, private val member2: Member, private
 
         //Game Start
         val channel = guildMiraculixx.getTextChannelById(GameManager.fourWinsChannel)!!
-        val selector = calcSelector()
+        val selector = calcButtons()
         message = channel.sendMessageEmbeds(calcEmbed())
             .setActionRow(selector).complete()
         thread = message.createThreadChannel("4G - ${member1.user.name} vs ${member2.user.name}").complete()

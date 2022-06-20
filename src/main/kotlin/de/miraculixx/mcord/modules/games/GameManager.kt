@@ -114,7 +114,7 @@ object GameManager : ButtonEvent, DropDownEvent {
             game.setWinner(FieldsTwoPlayer.EMPTY)
         }
         fiarGames.forEach { (_, game) ->
-            game
+            game.setWinner(FieldsTwoPlayer.EMPTY)
         }
         "Game Manager offline".log()
     }
