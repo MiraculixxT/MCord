@@ -13,14 +13,10 @@ import de.miraculixx.mcord.utils.manager.ButtonManager
 import de.miraculixx.mcord.utils.manager.DropDownManager
 import de.miraculixx.mcord.utils.manager.ModalManager
 import de.miraculixx.mcord.utils.manager.SlashCommandManager
-import io.ktor.client.HttpClient
-import io.ktor.client.engine.cio.CIO
-import java.io.BufferedReader
-import java.io.InputStreamReader
-import kotlinx.coroutines.Dispatchers
+import io.ktor.client.*
+import io.ktor.client.engine.cio.*
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.withContext
 import net.dv8tion.jda.api.JDA
 import net.dv8tion.jda.api.JDABuilder
 import net.dv8tion.jda.api.OnlineStatus
@@ -29,6 +25,7 @@ import net.dv8tion.jda.api.requests.GatewayIntent
 import net.dv8tion.jda.api.utils.ChunkingFilter
 import net.dv8tion.jda.api.utils.MemberCachePolicy
 import net.dv8tion.jda.api.utils.cache.CacheFlag
+import java.util.*
 
 fun main() {
     Main()
@@ -71,7 +68,7 @@ class Main {
         }
 
         updater = if (settingsConf.getBoolean("Updater"))
-             Updater.start(jda!!) else null
+            Updater.start(jda!!) else null
         SQL
         "MKord is now online!".log()
 
@@ -80,12 +77,10 @@ class Main {
 
     private fun shutdown() {
         runBlocking {
-            val reader = BufferedReader(InputStreamReader(System.`in`))
-            var line = withContext(Dispatchers.IO) {
-                reader.readLine()
-            }?.lowercase()
-            while (line != null) {
-                when (line) {
+            var online = true
+            while (online) {
+                val scanner = Scanner(System.`in`)
+                when (val out = scanner.nextLine()) {
                     "exit" -> {
                         KTOR.close()
                         updater?.cancel()
@@ -93,11 +88,10 @@ class Main {
                         jda?.shardManager?.setStatus(OnlineStatus.OFFLINE)
                         jda?.shutdown()
                         println("MKord is now offline!")
-                        return@runBlocking
+                        online = false
                     }
                     else -> {
-                        println("Command $line not found!\nCurrent Commands -> 'exit'")
-                        line = null
+                        println("Command $out not found!\nCurrent Commands -> 'exit'")
                     }
                 }
             }

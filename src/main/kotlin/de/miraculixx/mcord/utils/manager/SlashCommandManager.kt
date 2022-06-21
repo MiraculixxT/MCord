@@ -42,7 +42,7 @@ class SlashCommandManager : ListenerAdapter(), LateInit {
         commands["key-info"] = keys
         commands["key-update"] = keys
         commands["tictactoe"] = TTTCommand()
-        commands["4-gewinnt"] = FIARCommand()
+        commands["4-wins"] = FIARCommand()
 
         //Implement all Commands into Discord
         val jda = Main.INSTANCE.jda!!
@@ -74,11 +74,12 @@ class SlashCommandManager : ListenerAdapter(), LateInit {
                 Commands.slash("admin", "A Admin only command for testing")
                     .addOption(OptionType.STRING, "call", "Action to do", true, true)
                     .addOption(OptionType.BOOLEAN, "status", "Switch Online Status of MUtils"),
+
                 Commands.slash("tictactoe", "Spiele Tic-Tac-Toe gegen einen anderen Nutzer")
-                    .addOption(OptionType.USER, "user", "Gegen welchen Spieler willst du spielen?", true),
-                Commands.slash("4-gewinnt", "Spiele 4 Gewinnt gegen einen anderen Nutzer")
-                    .addOption(OptionType.USER, "user", "Gegen welchen Spieler willst du spielen?", true)
-            ).queue()
+                    .addOption(OptionType.USER, "user", "Gegen welchen Spieler willst du spielen?", false),
+                Commands.slash("4-wins", "Spiele 4 Gewinnt gegen einen anderen Nutzer")
+                    .addOption(OptionType.USER, "user", "Gegen welchen Spieler willst du spielen?", false)
+            )
         jda.updateCommands().queue()
     }
 }

@@ -2,26 +2,30 @@
 
 package de.miraculixx.mcord.modules.games.fourWins
 
-import de.miraculixx.mcord.modules.games.FieldsTwoPlayer
+import de.miraculixx.mcord.modules.games.utils.FieldsTwoPlayer
 import de.miraculixx.mcord.modules.games.GameManager
+import de.miraculixx.mcord.modules.games.utils.SimpleGame
 import de.miraculixx.mcord.utils.api.SQL
-import de.miraculixx.mcord.utils.guildMiraculixx
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import net.dv8tion.jda.api.EmbedBuilder
 import net.dv8tion.jda.api.entities.*
-import net.dv8tion.jda.api.events.interaction.component.SelectMenuInteractionEvent
+import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent
 import net.dv8tion.jda.api.interactions.components.ActionRow
 import net.dv8tion.jda.api.interactions.components.buttons.Button
-import net.dv8tion.jda.api.interactions.components.selections.SelectMenu
 import java.util.*
-import kotlin.collections.ArrayList
 import kotlin.random.Random
 import kotlin.time.Duration.Companion.seconds
 
 // FIAR -> Four in a Row
-class FIARGame(private val member1: Member, private val member2: Member, private val uuid: UUID) {
+class FIARGame(
+    private val member1: Member,
+    private val member2: Member,
+    private val uuid: UUID,
+    guild: Guild,
+    channelID: Long
+): SimpleGame {
 
     private val member1Emote: String
     private val member2Emote: String
@@ -44,55 +48,65 @@ class FIARGame(private val member1: Member, private val member2: Member, private
                 "$member1Emote - Spieler 1 ${member1.asMention}\n" +
                         "$member2Emote - Spieler 2 ${member2.asMention}"
             )
-        val mention = if (whoPlays) member1.asMention else member2.asMention
-        builder.addField(
-            "~~<                                                                            >~~",
-            "> $mention ist am Zug", false
-        )
+        if (winner == null) {
+            val mention = if (whoPlays) member1.asMention else member2.asMention
+            builder.addField(
+                "~~<                                                                            >~~",
+                "> $mention ist am Zug", false
+            ).setColor(0xb8800b)
+        } else {
+            val msg = when (winner!!) {
+                FieldsTwoPlayer.EMPTY -> "Unentschieden"
+                FieldsTwoPlayer.PLAYER_1 -> "${member1.asMention} hat gewonnen"
+                FieldsTwoPlayer.PLAYER_2 -> "${member2.asMention} hat gewonnen"
+            }
+            builder.addField(
+                "~~<                                                                            >~~",
+                "> $msg", false
+            ).setColor(0x2f3136)
+        }
 
         //Game field
         val stringBuilder = StringBuilder()
         var rowI = 1
         fields.forEach { row ->
-            stringBuilder.append("\n> `$rowI` ")
+            stringBuilder.append("\n> **║** ")
             row.forEach { stringBuilder.append(fieldToEmote(it)) }
+            stringBuilder.append(" **║**")
             rowI++
         }
-        stringBuilder.append("\n> ` ` `A\u1CBC\u1CBCB\u1CBC\u1CBCC\u1CBC\u1CBCD\u1CBC\u1CBCE\u1CBC\u1CBCF\u1CBC\u1CBCG`")
+        stringBuilder.append("\n> ` ` `1  2  3  4  5  6  7` ` `")
         builder.addField(
             "~~<                                                                            >~~",
             stringBuilder.toString(), false
         )
-        builder.setColor(0xb8800b)
         return builder.build()
     }
 
     private fun calcButtons(): List<ActionRow> {
         val buttons = ArrayList<Button>()
 
-        if (winner == null) {
+        return if (winner == null) {
             var columnI = 1
             val columns = (0..6).map { i -> (0..4).map { j -> fields[j][i] } }
             columns.forEach { column ->
                 val playableSlot = column.lastIndexOf(FieldsTwoPlayer.EMPTY)
                 if (playableSlot != -1) {
-                    buttons.add(Button.secondary("${columnI.minus(1)}-$playableSlot", columnI.toString()))
-                }
+                    buttons.add(Button.success("GAME_4G_P_${uuid}_${columnI.minus(1)}_$playableSlot", "$columnI"))
+                } else buttons.add(Button.danger("Baum$columnI", "$columnI").asDisabled())
                 columnI++
             }
+            val blanc = Emoji.fromMarkdown("<:blanc:784059217890770964>")
+            val row1 = ActionRow.of(buttons[1], buttons[2], buttons[3], buttons[4], buttons[5])
+            val row2 = ActionRow.of(
+                buttons[0], Button.secondary("BLANC1", blanc).asDisabled(),
+                Button.secondary("BLANC2", blanc).asDisabled(), Button.secondary("BLANC3", blanc).asDisabled(), buttons[6]
+            )
+            listOf(row1, row2)
         } else {
-            (1..7).forEach {
-                buttons.add(Button.secondary("Baum$it", it.toString()))
-            }
+            listOf()
         }
-        val blanc = Emoji.fromMarkdown("<:blanc:784059217890770964>")
-        val row1 = ActionRow.of(buttons[1], buttons[2], buttons[3], buttons[4], buttons[5])
-        val row2 = ActionRow.of(buttons[0], Button.primary("BLANC1", blanc).asDisabled(),
-            Button.primary("BLANC2", blanc).asDisabled(), Button.primary("BLANC3", blanc).asDisabled(), buttons[6])
-
-        return listOf(row1, row2)
     }
-
 
     private fun fieldToEmote(field: FieldsTwoPlayer): String {
         return when (field) {
@@ -111,7 +125,7 @@ class FIARGame(private val member1: Member, private val member2: Member, private
         // horizontal Check
         for (j in 0 until high - 3) {
             for (i in 0 until width) {
-                if (board[i][j] == player && board[i][j+1] == player && board[i][j+2] == player && board[i][j+3] == player) {
+                if (board[i][j] == player && board[i][j + 1] == player && board[i][j + 2] == player && board[i][j + 3] == player) {
                     return true
                 }
             }
@@ -119,31 +133,33 @@ class FIARGame(private val member1: Member, private val member2: Member, private
         // vertical Check
         for (i in 0 until width - 3) {
             for (j in 0 until high) {
-                if (board[i][j] == player && board[i+1][j] == player && board[i+2][j] == player && board[i+3][j] == player)
+                if (board[i][j] == player && board[i + 1][j] == player && board[i + 2][j] == player && board[i + 3][j] == player)
                     return true
             }
         }
         // ascending Diagonal Check
         for (i in 3 until width) {
             for (j in 0 until high - 3) {
-                if (board[i][j] == player && board[i-1][j+1] == player && board[i-2][j+2] == player && board[i-3][j+3] == player)
+                if (board[i][j] == player && board[i - 1][j + 1] == player && board[i - 2][j + 2] == player && board[i - 3][j + 3] == player)
                     return true
             }
         }
         // descending Diagonal Check
         for (i in 3 until width) {
             for (j in 3 until high) {
-                if (board[i][j] == player && board[i-1][j-1] == player && board[i-2][j-2] == player && board[i-3][j-3] == player)
+                if (board[i][j] == player && board[i - 1][j - 1] == player && board[i - 2][j - 2] == player && board[i - 3][j - 3] == player)
                     return true
             }
         }
         return false
     }
 
-    suspend fun interaction(column: Char, row: Char, interactor: Member, event: SelectMenuInteractionEvent) = coroutineScope {
+    override suspend fun interact(options: List<String>, interactor: Member, event: ButtonInteractionEvent) = coroutineScope {
+        val column = options[0][0]
+        val row = options[1][0]
         val memberID = interactor.idLong
         if (memberID != member1.idLong && memberID != member2.idLong) {
-            event.reply("```diff\n- Du bist kein Teil dieser Partie!\nStarte eine eigene über /vier-gewinnt <user>```").setEphemeral(true).queue()
+            event.reply("```diff\n- Du bist kein Teil dieser Partie!\nStarte eine eigene über /4-wins <user>```").setEphemeral(true).queue()
             return@coroutineScope
         }
         if ((whoPlays && memberID != member1.idLong) || (!whoPlays && memberID != member2.idLong)) {
@@ -154,8 +170,10 @@ class FIARGame(private val member1: Member, private val member2: Member, private
         val emote = if (whoPlays) member1Emote else member2Emote
         val opponent = if (whoPlays) member2 else member1
         fields[row.digitToInt()][column.digitToInt()] = who
-        thread.sendMessage("${interactor.asMention} hat $emote auf Feld **$column$row** gesetzt.\n" +
-                "> ${opponent.asMention} du bist am Zug!").queue()
+        thread.sendMessage(
+            "${interactor.asMention} hat $emote in Spalte **${column.plus(1)}** gesetzt.\n" +
+                    "> ${opponent.asMention} du bist am Zug!"
+        ).queue()
         whoPlays = !whoPlays
 
         if (checkWinner(who)) {
@@ -165,13 +183,13 @@ class FIARGame(private val member1: Member, private val member2: Member, private
                     "**\uD83C\uDFC1 || Das Spiel wurde beendet!**\n" +
                     when (winner ?: FieldsTwoPlayer.EMPTY) {
                         FieldsTwoPlayer.EMPTY -> "Niemand hat gewonnen - Unentschieden"
-                        FieldsTwoPlayer.PLAYER_1 -> "<:xx:988156472020066324> ${member1.asMention} hat gewonnen!"
-                        FieldsTwoPlayer.PLAYER_2 -> "<:oo:988156473274163200> ${member2.asMention} hat gewonnen!"
+                        FieldsTwoPlayer.PLAYER_1 -> "$member1Emote ${member1.asMention} hat gewonnen!"
+                        FieldsTwoPlayer.PLAYER_2 -> "$member2Emote ${member2.asMention} hat gewonnen!"
                     }
             thread.sendMessage(msg)
                 .setEmbeds(EmbedBuilder().setDescription("Der Spiel-Bereich löscht sich in **30s**").build())
                 .setActionRow(replayButton).queue()
-            GameManager.tttGames.remove(uuid)
+            GameManager.fiarGames.remove(uuid)
         }
         val selector = calcButtons()
         message.editMessageEmbeds(calcEmbed()).setActionRows(selector).complete()
@@ -197,7 +215,7 @@ class FIARGame(private val member1: Member, private val member2: Member, private
         member2Emote = if (emote?.emote == member1Emote) emote.emote2 else emote?.emote ?: ":red_circle:"
 
         //Game Start
-        val channel = guildMiraculixx.getTextChannelById(GameManager.fourWinsChannel)!!
+        val channel = guild.getTextChannelById(channelID)!!
         val selector = calcButtons()
         message = channel.sendMessageEmbeds(calcEmbed())
             .setActionRows(selector).complete()

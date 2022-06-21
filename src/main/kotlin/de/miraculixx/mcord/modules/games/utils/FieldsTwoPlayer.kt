@@ -1,4 +1,4 @@
-package de.miraculixx.mcord.modules.games
+package de.miraculixx.mcord.modules.games.utils
 
 enum class FieldsTwoPlayer {
     EMPTY,
