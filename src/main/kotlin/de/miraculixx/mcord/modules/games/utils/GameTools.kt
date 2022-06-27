@@ -5,27 +5,35 @@ import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEve
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent
 import java.util.*
 
-class GameTools(private val gameTag: String, private val gameName: String) {
-    fun command(event: SlashCommandInteractionEvent) {
-        val member = event.member ?: return
-        val opponent = event.getOption("user")?.asMember
-        val hook = event.hook
-        if (opponent == null) {
-            event.deferReply().queue()
-            GameManager.searchGame(hook, member, gameTag, gameName)
-            return
-        }
+class GameTools(private val gameTag: String, private val gameName: String, private val game: Games) {
+    fun command(it: SlashCommandInteractionEvent) {
+        val subcommand = it.subcommandName ?: return
+        val member = it.member ?: return
+        val hook = it.hook
 
-        if (opponent.id == member.id) {
-            event.reply("```diff\n- Du kannst dich nicht selbst herausfordern! Gebe keinen Nutzer an, um gegen den Bot zu spielen```")
-                .setEphemeral(true).queue()
-            return
+        when (subcommand) {
+            "user" -> {
+                val opponent = it.getOption("request")?.asMember
+                if (opponent != null) {
+                    if (opponent.id == member.id)
+                        it.reply("```diff\n- Du kannst nicht gegen dich selbst spielen```").setEphemeral(true).queue()
+                    else {
+                        it.deferReply().queue()
+                        GameManager.requestGame(hook, member, opponent, gameTag, gameName)
+                    }
+                } else {
+                    it.deferReply().queue()
+                    GameManager.searchGame(hook, member, gameTag, gameName)
+                }
+            }
+            "bot" -> {
+                it.reply("```diff\n+ Neues Bot Game wird gestartet!\n+ Difficulty: Hard```").setEphemeral(true).queue()
+                GameManager.newGame(game, it.guild, listOf(member.id, it.jda.selfUser.id), it.channel.idLong)
+            }
         }
-        event.deferReply().queue()
-        GameManager.requestGame(hook, member, opponent, gameTag, gameName)
     }
 
-    suspend fun buttons(it: ButtonInteractionEvent, game: Games) {
+    suspend fun buttons(it: ButtonInteractionEvent) {
         val id = it.button.id?.removePrefix("GAME_${gameTag}_") ?: return
         val member = it.member ?: return
         val guild = it.guild
@@ -33,12 +41,12 @@ class GameTools(private val gameTag: String, private val gameName: String) {
 
         // GAME_TTT_ (first snippet)
         // P_<DATA> (options)
-        when (options[1]) {
+        when (options[0]) {
             "P" -> GameManager.getGame(game, UUID.fromString(options[1]))
-                    ?.interact(options.subList(1, options.size), member, it)
+                    ?.interact(options.subList(2, options.size), member, it)
             "R" -> {
                 it.message.delete().queue()
-                GameManager.newGame(game, guild, listOf(options[1], options[2]), it.channel.idLong)
+                GameManager.newGame(game, guild, listOf(options[1], options[2]), it.threadChannel.parentMessageChannel.idLong)
             }
             "YES" -> {
                 if (options[2] != member.id)
@@ -61,7 +69,7 @@ class GameTools(private val gameTag: String, private val gameName: String) {
             else {
                 it.message.delete().queue()
                 it.reply("```diff\n+ Spiel wird gestartet...```").setEphemeral(true).queue()
-                GameManager.newGame(game, guild, listOf(options[1], options[2]), it.channel.idLong)
+                GameManager.newGame(game, guild, listOf(options[1], member.id), it.channel.idLong)
             }
             "CANCEL" -> if (options[1] != member.id)
                 it.reply("```diff\n- Du kannst diese Spielersuche nicht beenden!```").setEphemeral(true).queue()

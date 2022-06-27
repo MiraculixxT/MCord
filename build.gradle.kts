@@ -9,6 +9,7 @@ version = "1.0"
 
 repositories {
     mavenCentral()
+    maven("https://jitpack.io/")
 }
 
 dependencies {

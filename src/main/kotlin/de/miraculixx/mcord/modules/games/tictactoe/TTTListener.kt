@@ -7,7 +7,7 @@ import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent
 
 class TTTListener : ButtonEvent {
     override suspend fun trigger(it: ButtonInteractionEvent) {
-        val tools = GameTools("TTT", "Tic Tac Toe")
-        tools.buttons(it, Games.TIC_TAC_TOE)
+        val tools = GameTools("TTT", "Tic Tac Toe", Games.TIC_TAC_TOE)
+        tools.buttons(it)
     }
 }

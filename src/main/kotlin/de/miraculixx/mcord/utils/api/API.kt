@@ -20,6 +20,11 @@ suspend fun callAPI(api: API, action: String): String {
     return response.bodyAsText()
 }
 
+suspend fun callCustomAPI(url: String): String {
+    val response: HttpResponse = client.get(url)
+    return response.bodyAsText()
+}
+
 enum class API {
     MUTILS,
     MINECRAFT,

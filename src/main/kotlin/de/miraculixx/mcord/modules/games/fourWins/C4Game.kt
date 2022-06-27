@@ -2,11 +2,13 @@
 
 package de.miraculixx.mcord.modules.games.fourWins
 
-import de.miraculixx.mcord.modules.games.utils.FieldsTwoPlayer
 import de.miraculixx.mcord.modules.games.GameManager
+import de.miraculixx.mcord.modules.games.utils.FieldsTwoPlayer
 import de.miraculixx.mcord.modules.games.utils.SimpleGame
 import de.miraculixx.mcord.utils.api.SQL
-import kotlinx.coroutines.coroutineScope
+import de.miraculixx.mcord.utils.log
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import net.dv8tion.jda.api.EmbedBuilder
@@ -19,25 +21,26 @@ import kotlin.random.Random
 import kotlin.time.Duration.Companion.seconds
 
 // FIAR -> Four in a Row
-class FIARGame(
+class C4Game(
     private val member1: Member,
     private val member2: Member,
     private val uuid: UUID,
     guild: Guild,
     channelID: Long
-): SimpleGame {
+) : SimpleGame {
 
     private val member1Emote: String
     private val member2Emote: String
 
     // Who is playing the next step
     // True - P1 (red) || False - P2 (green)
+    private var bot: C4Bot? = null
     private var whoPlays = Random.nextBoolean()
     private var winner: FieldsTwoPlayer? = null
     private val message: Message
     private val threadMessage: Message
     private val thread: ThreadChannel
-    private val fields = Array(5) {
+    private val fields = Array(6) {
         (1..7).map { FieldsTwoPlayer.EMPTY }.toTypedArray()
     }
 
@@ -88,7 +91,7 @@ class FIARGame(
 
         return if (winner == null) {
             var columnI = 1
-            val columns = (0..6).map { i -> (0..4).map { j -> fields[j][i] } }
+            val columns = (0..6).map { i -> (0..5).map { j -> fields[j][i] } }
             columns.forEach { column ->
                 val playableSlot = column.lastIndexOf(FieldsTwoPlayer.EMPTY)
                 if (playableSlot != -1) {
@@ -119,7 +122,7 @@ class FIARGame(
     private fun checkWinner(player: FieldsTwoPlayer): Boolean {
         val high = fields.size
         val width = fields[0].size
-        val board = (0..6).map { i -> (0..4).map { j -> fields[j][i] } }
+        val board = (0..6).map { i -> (0..5).map { j -> fields[j][i] } }
 
         // Algorithm joinkt from https://stackoverflow.com/questions/32770321/connect-4-check-for-a-win-algorithm
         // horizontal Check
@@ -154,22 +157,43 @@ class FIARGame(
         return false
     }
 
-    override suspend fun interact(options: List<String>, interactor: Member, event: ButtonInteractionEvent) = coroutineScope {
+    override suspend fun interact(options: List<String>, interactor: Member, event: ButtonInteractionEvent) {
         val column = options[0][0]
         val row = options[1][0]
         val memberID = interactor.idLong
         if (memberID != member1.idLong && memberID != member2.idLong) {
             event.reply("```diff\n- Du bist kein Teil dieser Partie!\nStarte eine eigene über /4-wins <user>```").setEphemeral(true).queue()
-            return@coroutineScope
+            return
         }
         if ((whoPlays && memberID != member1.idLong) || (!whoPlays && memberID != member2.idLong)) {
             event.reply("```diff\n- Du bist gerade nicht am Zug!```").setEphemeral(true).queue()
-            return@coroutineScope
+            return
         }
+        event.editMessage(message.contentRaw + " ").complete()
+        sendUpdate(row.digitToInt(), column.digitToInt(), interactor)
+    }
+
+    fun setWinner(win: FieldsTwoPlayer) {
+        winner = win
+        message.editMessageEmbeds(calcEmbed()).setActionRows(calcButtons()).queue()
+        thread.delete().queue()
+    }
+
+    private suspend fun botMove() {
+        val nextColumn = bot?.getNextMove(fields) ?: return
+        val columns = (0..6).map { i -> (0..5).map { j -> fields[j][i] } }
+        val column = columns[nextColumn]
+
+        val row = column.lastIndexOf(FieldsTwoPlayer.EMPTY)
+        fields[row][nextColumn] = FieldsTwoPlayer.PLAYER_2
+        sendUpdate(row, nextColumn, member2)
+    }
+
+    private suspend fun sendUpdate(row: Int, column: Int, interactor: Member) {
         val who = if (whoPlays) FieldsTwoPlayer.PLAYER_1 else FieldsTwoPlayer.PLAYER_2
         val emote = if (whoPlays) member1Emote else member2Emote
         val opponent = if (whoPlays) member2 else member1
-        fields[row.digitToInt()][column.digitToInt()] = who
+        fields[row][column] = who
         thread.sendMessage(
             "${interactor.asMention} hat $emote in Spalte **${column.plus(1)}** gesetzt.\n" +
                     "> ${opponent.asMention} du bist am Zug!"
@@ -189,41 +213,50 @@ class FIARGame(
             thread.sendMessage(msg)
                 .setEmbeds(EmbedBuilder().setDescription("Der Spiel-Bereich löscht sich in **30s**").build())
                 .setActionRow(replayButton).queue()
-            GameManager.fiarGames.remove(uuid)
+            GameManager.c4Games.remove(uuid)
         }
         val selector = calcButtons()
         message.editMessageEmbeds(calcEmbed()).setActionRows(selector).complete()
-        threadMessage.editMessageComponents(selector).complete()
-        event.editMessage(event.message.contentRaw).queue()
-        if (winner != null) launch {
+        threadMessage.editMessage("**Game Finished**").setActionRows(selector).complete()
+
+        if (winner != null) {
             delay(30.seconds)
             thread.delete().queue()
+        } else if (bot != null && !whoPlays) {
+            delay(1.seconds)
+            botMove()
         }
-    }
-
-    fun setWinner(win: FieldsTwoPlayer) {
-        winner = win
-        message.editMessageEmbeds(calcEmbed()).setActionRows(calcButtons()).queue()
-        thread.delete().queue()
     }
 
 
     init {
+        if (member2.user.isBot) {
+            //BOT GAME
+            "GAME > Start Bot Game".log()
+            bot = C4Bot()
+        }
+
         //Get Emotes
         member1Emote = SQL.getUserEmote(member1.idLong)?.emote ?: ":yellow_circle:"
         val emote = SQL.getUserEmote(member2.idLong)
-        member2Emote = if (emote?.emote == member1Emote) emote.emote2 else emote?.emote ?: ":red_circle:"
+        member2Emote = if (bot != null) "\uD83E\uDD16" else
+            if (emote?.emote == member1Emote) emote.emote2 else emote?.emote ?: ":red_circle:"
 
         //Game Start
         val channel = guild.getTextChannelById(channelID)!!
         val selector = calcButtons()
         message = channel.sendMessageEmbeds(calcEmbed())
             .setActionRows(selector).complete()
-        thread = message.createThreadChannel("4G - ${member1.user.name} vs ${member2.user.name}").complete()
+        thread = message.createThreadChannel("4G - ${member1.nickname ?: member1.user.name} vs ${member2.nickname ?: member2.user.name}").complete()
         threadMessage = thread.sendMessage(" \u1CBC ").setActionRows(selector).complete()
         thread.addThreadMember(member1).complete()
         thread.addThreadMember(member2).complete()
-        val mention = if (whoPlays) member1.asMention else member2.asMention
-        thread.sendMessage("$mention du bist am Zug!").queue()
+        val mention = if (whoPlays) member1 else member2
+        thread.sendMessage("${mention.asMention} du bist am Zug!").queue()
+
+        if (bot != null && mention.id == member2.id)
+            CoroutineScope(Dispatchers.Default).launch {
+                botMove()
+            }
     }
 }

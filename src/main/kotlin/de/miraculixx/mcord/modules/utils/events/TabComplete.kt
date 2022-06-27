@@ -1,5 +1,7 @@
 package de.miraculixx.mcord.modules.utils.events
 
+import de.miraculixx.mcord.config.ConfigManager
+import de.miraculixx.mcord.config.Configs
 import net.dv8tion.jda.api.events.interaction.command.CommandAutoCompleteInteractionEvent
 import net.dv8tion.jda.api.hooks.ListenerAdapter
 

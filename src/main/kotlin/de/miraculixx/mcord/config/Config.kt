@@ -1,8 +1,9 @@
-@file:Suppress("unused", "MemberVisibilityCanBePrivate")
+@file:Suppress("unused", "MemberVisibilityCanBePrivate", "UNCHECKED_CAST")
 
 package de.miraculixx.mcord.config
 
 import de.miraculixx.mcord.utils.log
+import org.apache.commons.collections4.map.LinkedMap
 import org.yaml.snakeyaml.Yaml
 import java.io.File
 
@@ -14,6 +15,36 @@ class Config(path: String) {
 
     fun getString(name: String): String {
         return configMap[name].toString()
+    }
+
+    fun getStringList(name: String): List<String> {
+        return try {
+            configMap[name] as List<String>
+        } catch (e: ClassCastException) {
+            "ERROR > Value $name in Config ${this.name} cannot be casted to List<String>".log()
+            emptyList()
+        } catch (e: NullPointerException) {
+            "ERROR > Value $name in Config ${this.name} is empty".log()
+            emptyList()
+        }
+    }
+
+    fun <T> getObjectList(name: String): LinkedHashMap<String, T> {
+        return try {
+            val origin = configMap[name] as List<Map<String, T>>
+            val map = LinkedHashMap<String, T>()
+            origin.forEach {
+                val data = it.entries.first()
+                map[data.key] = data.value
+            }
+            map
+        } catch (e: ClassCastException) {
+            "ERROR > Value $name in Config ${this.name} cannot be casted to List<Map<String, T>>".log()
+            linkedMapOf()
+        } catch (e: NullPointerException) {
+            "ERROR > Value $name in Config ${this.name} is empty".log()
+            linkedMapOf()
+        }
     }
 
     fun getInt(name: String): Int {

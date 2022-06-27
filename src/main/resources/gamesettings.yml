@@ -3,19 +3,21 @@
 #           !IMPORTANT! - Do not share these values with anyone!          #
 #-------------------------------------------------------------------------#
 
-TicTacToe-Channel: 988144444874326026
-FourInARow-Channel: 988427204075618334
+Connect4-RawEmotes:
+  - 🔵: 100
+  - 🟤: 100
+  - 🟢: 100
+  - 🟠: 100
+  - 🟣: 100
+  - 😡: 300
+  - 😳: 300
+  - 🤓: 300
+  - 😎: 300
 
-FourInARow-Emotes:
-  - ":blue_circle:"
-  - ":brown_circle:"
-  - ":green_circle:"
-  - ":orange_circle:"
-  - ":purple_circle:"
+Connect4-SpecialEmotes:
   - "<:OMEGALUL:816312423115915305>"
   - "<:D_:852962423094509638>"
   - "<:xD:949671949670428733>"
-  - ":rage:"
-  - ":flushed:"
-  - ":nerd:"
-  - ":sunglasses:"
+  - "<:Pumpkin:895271226304503858>"
+  - "<:protect:885240719202197545>"
+  - "<:mcHeart:748568708900847658>"
