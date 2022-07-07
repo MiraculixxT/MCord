@@ -1,0 +1,8 @@
+#---------------------------->> Configurations <<----------------------------#
+#       Set up the Bot with some settings. They only apply to Modules!       #
+#  Stick to the given value types. Changing types or entering false values   #
+#                        lead to errors or shutdowns                         #
+#----------------------------------------------------------------------------#
+
+# Should the MUtils Stats Updater start on boot up?
+Updater: false
