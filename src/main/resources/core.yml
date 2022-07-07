@@ -1,0 +1,16 @@
+#---------------------------->> Credentials <<----------------------------#
+#                   Replace these values with your tokens                 #
+#           !IMPORTANT! - Do not share these values with anyone!          #
+#-------------------------------------------------------------------------#
+
+# Discord Bot Token
+# Get it on https://discord.com/developers/applications/
+DISCORD_TOKEN: "<bot-token>"
+
+# MUtils API Token
+# This Key is privat. Replace it with your own API (needs code changes!)
+API_TOKEN: "<api-token>"
+
+# MariaDB SQL Token
+# This Key is privat. Replace it with your own SQL Key
+SQL_TOKEN: "<sql-token>"
