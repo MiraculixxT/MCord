@@ -1,7 +1,5 @@
 package de.miraculixx.mcord.utils.manager
 
-import de.miraculixx.mcord.modules.games.idle.DropDownHelp
-import de.miraculixx.mcord.modules.mutils.DropdownServer
 import de.miraculixx.mcord.modules.suggest.DropdownSuggest
 import de.miraculixx.mcord.utils.entities.DropDownEvent
 import kotlinx.coroutines.CoroutineScope
@@ -17,7 +15,6 @@ class DropDownManager : ListenerAdapter() {
     override fun onSelectMenuInteraction(it: SelectMenuInteractionEvent) {
         val id = it.selectMenu.id ?: return
         val commandClass = when {
-            id.startsWith("editcons_") -> dropdowns["serverSelect"] ?: return
 
             else -> dropdowns[id] ?: return
         }
@@ -27,8 +24,6 @@ class DropDownManager : ListenerAdapter() {
     }
 
     init {
-        dropdowns["serverSelect"] = DropdownServer()
         dropdowns["vorschlag"] = DropdownSuggest()
-        dropdowns["GIdle_Info"] = DropDownHelp()
     }
 }

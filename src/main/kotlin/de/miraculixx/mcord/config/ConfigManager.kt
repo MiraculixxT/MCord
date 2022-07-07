@@ -25,7 +25,6 @@ object ConfigManager {
         configs = mapOf(
             Configs.CORE to Config("${configFolder.path}${s}core.yml"),
             Configs.SETTINGS to Config("${configFolder.path}${s}config.yml"),
-            Configs.GAME_SETTINGS to Config("${configFolder.path}${s}gamesettings.yml")
         )
 
 
