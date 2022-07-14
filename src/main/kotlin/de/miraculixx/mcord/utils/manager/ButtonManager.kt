@@ -1,6 +1,6 @@
 package de.miraculixx.mcord.utils.manager
 
-import de.miraculixx.mcord.modules.games.chess.ChessListener
+import de.miraculixx.mcord.modules.games.chess.ChessButton
 import de.miraculixx.mcord.modules.games.connectFour.C4Listener
 import de.miraculixx.mcord.modules.games.idle.ButtonLoadBuildings
 import de.miraculixx.mcord.modules.games.idle.ButtonLoadUpgrades
@@ -15,7 +15,7 @@ object ButtonManager {
         "GIdle_LoadBuildings" to ButtonLoadBuildings(),
         "GAME_TTT" to TTTListener(),
         "GAME_4G" to C4Listener(),
-        "GAME_CHESS" to ChessListener()
+        "GAME_CHESS" to ChessButton()
     )
 
     fun startListen(jda: JDA) = jda.listener<ButtonInteractionEvent> {

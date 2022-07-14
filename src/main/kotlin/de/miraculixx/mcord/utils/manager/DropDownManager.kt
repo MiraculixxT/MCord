@@ -1,6 +1,6 @@
 package de.miraculixx.mcord.utils.manager
 
-import de.miraculixx.mcord.modules.games.chess.ChessListener
+import de.miraculixx.mcord.modules.games.chess.ChessDropdown
 import de.miraculixx.mcord.modules.games.connectFour.C4Listener
 import de.miraculixx.mcord.modules.games.idle.DropDownHelp
 import dev.minn.jda.ktx.events.listener
@@ -10,7 +10,7 @@ import net.dv8tion.jda.api.events.interaction.component.SelectMenuInteractionEve
 object DropDownManager {
     private val dropdowns = mapOf(
         "GIdle_Info" to DropDownHelp(),
-        "GAME_CHESS" to ChessListener(),
+        "GAME_CHESS" to ChessDropdown(),
         "GAME_C4" to C4Listener()
     )
 

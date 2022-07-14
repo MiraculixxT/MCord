@@ -6,17 +6,15 @@ import de.miraculixx.mcord.modules.games.connectFour.C4Command
 import de.miraculixx.mcord.modules.games.tictactoe.TTTCommand
 import de.miraculixx.mcord.modules.system.AdminCommand
 import de.miraculixx.mcord.modules.system.SetupCommand
-import de.miraculixx.mcord.utils.entities.LateInit
 import de.miraculixx.mcord.utils.log
 import dev.minn.jda.ktx.events.listener
 import dev.minn.jda.ktx.interactions.commands.Command
 import dev.minn.jda.ktx.interactions.commands.subcommand
 import net.dv8tion.jda.api.JDA
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent
-import net.dv8tion.jda.api.hooks.ListenerAdapter
 import net.dv8tion.jda.api.interactions.commands.OptionType
 
-object SlashCommandManager : ListenerAdapter(), LateInit {
+object SlashCommandManager {
     private val commands = mapOf(
         "tictactoe" to TTTCommand(),
         "connect-4" to C4Command(),
@@ -34,7 +32,7 @@ object SlashCommandManager : ListenerAdapter(), LateInit {
     init {
         //Implement all Commands into Discord
         val jda = Main.INSTANCE.jda
-        val mainServer = jda?.getGuildById(707925156919771158)!!
+        val mainServer = jda.getGuildById(707925156919771158)!!
         jda.updateCommands().addCommands(
             Command("tictactoe", "Play Tic-Tac-Toe against others") {
                 subcommand("user", "Play Tic-Tac-Toe against an other User") {

@@ -1,14 +1,13 @@
 package de.miraculixx.mcord.utils.manager
 
-import de.miraculixx.mcord.modules.games.chess.ChessListener
+import de.miraculixx.mcord.modules.games.chess.ChessModal
 import dev.minn.jda.ktx.events.listener
 import net.dv8tion.jda.api.JDA
 import net.dv8tion.jda.api.events.interaction.ModalInteractionEvent
-import net.dv8tion.jda.api.hooks.ListenerAdapter
 
 object ModalManager {
     private val modals = mapOf(
-        "chess" to ChessListener()
+        "chess" to ChessModal()
     )
 
     fun startListen(jda: JDA) = jda.listener<ModalInteractionEvent> {

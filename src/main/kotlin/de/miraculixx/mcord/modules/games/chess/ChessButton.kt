@@ -1,20 +1,16 @@
 package de.miraculixx.mcord.modules.games.chess
 
-import de.miraculixx.mcord.modules.games.GameManager
 import de.miraculixx.mcord.modules.games.utils.Game
 import de.miraculixx.mcord.modules.games.utils.GameTools
 import de.miraculixx.mcord.utils.entities.ButtonEvent
 import de.miraculixx.mcord.utils.entities.DropDownEvent
 import de.miraculixx.mcord.utils.entities.ModalEvent
-import net.dv8tion.jda.api.events.interaction.ModalInteractionEvent
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent
-import net.dv8tion.jda.api.events.interaction.component.SelectMenuInteractionEvent
 import net.dv8tion.jda.api.interactions.components.Modal
 import net.dv8tion.jda.api.interactions.components.text.TextInput
 import net.dv8tion.jda.api.interactions.components.text.TextInputStyle
-import java.util.*
 
-class ChessListener : ButtonEvent, ModalEvent, DropDownEvent {
+class ChessButton : ButtonEvent, ModalEvent, DropDownEvent {
     override suspend fun trigger(it: ButtonInteractionEvent) {
         val member = it.member ?: return
         val id = it.button.id?.removePrefix("GAME_CHESS_") ?: return
@@ -38,26 +34,5 @@ class ChessListener : ButtonEvent, ModalEvent, DropDownEvent {
             }
             else -> GameTools("CHESS", "Schach", Game.CHESS).buttons(it)
         }
-    }
-
-    override suspend fun trigger(it: SelectMenuInteractionEvent) {
-        val id = it.selectMenu.id?.removePrefix("GAME_CHESS_") ?: return
-        val options = id.split('_')
-        val data = it.selectedOptions.first().value.split('_')
-        val member = it.member ?: return
-        GameManager.getGame(it.guild?.idLong ?: return, Game.CHESS, UUID.fromString(options[1]))?.interact(data, member, it)
-    }
-
-    override suspend fun trigger(it: ModalInteractionEvent) {
-        val options = it.modalId.removePrefix("GAME_CHESS_").split('_')
-        val id = it.getValue("FROM")?.asString ?: return
-        val game = GameManager.getGame(it.guild?.idLong ?: return, Game.CHESS, UUID.fromString(options[1])) as ChessGame
-        it.deferReply(true).complete()
-        val digit = id[1].digitToIntOrNull()
-        if (digit == null) {
-            it.hook.editOriginal("```diff\n- $id ist kein gültiges Feld!\n- Nutzung: A1, B6, ...```").queue()
-            return
-        }
-        game.interactTo(id[1].digitToInt() - 1 to id[0].uppercaseChar(), it.hook)
     }
 }
