@@ -1,0 +1,11 @@
+- WIN_C4_BOT: 50
+- WIN_C4_USER: 42
+- WIN_TTT_USER: 37
+- WIN_CHESS_USER: 47
+- TIMEOUT_CHESS: 32
+- REPLAY: 35
+
+Daily-Bonus-Challenges:
+  - CHANGE_C4_SKIN: 20
+  - DRAW_C4: 32
+  - DRAW_TTT: 21

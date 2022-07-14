@@ -3,7 +3,7 @@ package de.miraculixx.mcord
 import de.miraculixx.mcord.config.ConfigManager
 import de.miraculixx.mcord.config.Configs
 import de.miraculixx.mcord.modules.games.GameManager
-import de.miraculixx.mcord.modules.utils.UpdaterGame
+import de.miraculixx.mcord.modules.games.UpdaterGame
 import de.miraculixx.mcord.utils.api.SQL
 import de.miraculixx.mcord.utils.log
 import de.miraculixx.mcord.utils.manager.ButtonManager
@@ -17,9 +17,8 @@ import kotlinx.coroutines.runBlocking
 import net.dv8tion.jda.api.JDA
 import net.dv8tion.jda.api.JDABuilder
 import net.dv8tion.jda.api.OnlineStatus
+import net.dv8tion.jda.api.entities.Activity
 import net.dv8tion.jda.api.requests.GatewayIntent
-import net.dv8tion.jda.api.utils.ChunkingFilter
-import net.dv8tion.jda.api.utils.MemberCachePolicy
 import net.dv8tion.jda.api.utils.cache.CacheFlag
 import java.util.*
 
@@ -45,15 +44,12 @@ class Main {
         val settingsConf = ConfigManager.getConfig(Configs.SETTINGS)
         val builder = JDABuilder.createDefault(coreConf.getString("DISCORD_TOKEN"))
         builder.disableCache(CacheFlag.VOICE_STATE)
-        //builder.setActivity(Activity.listening("Miraculixx's complains"))
-        //builder.setStatus(OnlineStatus.IDLE)
-        builder.enableIntents(GatewayIntent.GUILD_MESSAGES, GatewayIntent.GUILD_MEMBERS)
-        builder.setMemberCachePolicy(MemberCachePolicy.ALL)
+        builder.setActivity(Activity.competing("Chess Games"))
+        builder.setStatus(OnlineStatus.DO_NOT_DISTURB)
+        builder.enableIntents(GatewayIntent.GUILD_MEMBERS)
         val lateInits = listOf(SlashCommandManager())
         builder.addEventListeners(ButtonManager(), DropDownManager(), ModalManager())
         lateInits.forEach { builder.addEventListeners(it) }
-
-        builder.setChunkingFilter(ChunkingFilter.include(908621996009619477))
 
         jda = builder.build()
         jda!!.awaitReady()

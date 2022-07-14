@@ -4,6 +4,7 @@ package de.miraculixx.mcord.modules.games.connectFour
 
 import de.miraculixx.mcord.modules.games.GameManager
 import de.miraculixx.mcord.modules.games.utils.FieldsTwoPlayer
+import de.miraculixx.mcord.modules.games.utils.Game
 import de.miraculixx.mcord.modules.games.utils.SimpleGame
 import de.miraculixx.mcord.utils.api.SQL
 import de.miraculixx.mcord.utils.log
@@ -29,17 +30,18 @@ class C4Game(
     channelID: Long
 ) : SimpleGame {
 
-    private val member1Emote: String
-    private val member2Emote: String
+    private lateinit var member1Emote: String
+    private lateinit var member2Emote: String
+    private val guildID: Long
 
     // Who is playing the next step
     // True - P1 (red) || False - P2 (green)
     private var bot: C4Bot? = null
     private var whoPlays = Random.nextBoolean()
     private var winner: FieldsTwoPlayer? = null
-    private val message: Message
-    private val threadMessage: Message
-    private val thread: ThreadChannel
+    private lateinit var message: Message
+    private lateinit var threadMessage: Message
+    private lateinit var thread: ThreadChannel
     private val fields = Array(6) {
         (1..7).map { FieldsTwoPlayer.EMPTY }.toTypedArray()
     }
@@ -171,7 +173,7 @@ class C4Game(
         sendUpdate(row.digitToInt(), column.digitToInt(), interactor)
     }
 
-    fun setWinner(win: FieldsTwoPlayer) {
+    override fun setWinner(win: FieldsTwoPlayer) {
         winner = win
         message.editMessageEmbeds(calcEmbed()).setActionRows(calcButtons()).queue()
         thread.delete().queue()
@@ -211,7 +213,13 @@ class C4Game(
             thread.sendMessage(msg)
                 .setEmbeds(EmbedBuilder().setDescription("Der Spiel-Bereich löscht sich in **30s**").build())
                 .setActionRow(replayButton).queue()
-            GameManager.c4Games.remove(uuid)
+            GameManager.removeGame(guildID, Game.FOUR_WINS, uuid)
+
+            val ex = if (bot == null) "" else "_Bot"
+            if (winner == FieldsTwoPlayer.PLAYER_1)
+                SQL.addWin(member1.idLong, guildID, "C4$ex")
+            else if (winner == FieldsTwoPlayer.PLAYER_2)
+                SQL.addWin(member2.idLong, guildID, "C4$ex")
         }
         val selector = calcButtons()
         message.editMessageEmbeds(calcEmbed()).setActionRows(selector).complete()
@@ -233,28 +241,31 @@ class C4Game(
             "GAME > Start Bot Game".log()
             bot = C4Bot()
         }
+        guildID = guild.idLong
 
-        //Get Emotes
-        member1Emote = SQL.getUser(member1.idLong, true, false).emotes!!.c4
-        val emote = SQL.getUser(member2.idLong, true, false).emotes!!
-        member2Emote = if (bot != null) "\uD83E\uDD16" else
-            if (emote.c4 == member1Emote) emote.c4 else emote.c42
+        CoroutineScope(Dispatchers.Default).launch {
+            //Get Emotes
+            member1Emote = SQL.getUser(member1.idLong, guildID, emotes = true).emotes!!.c4
+            val emote = SQL.getUser(member2.idLong, guildID, emotes = true).emotes!!
+            member2Emote = if (bot != null) "\uD83E\uDD16" else
+                if (emote.c4 == member1Emote) emote.c42 else emote.c4
 
-        //Game Start
-        val channel = guild.getTextChannelById(channelID)!!
-        val selector = calcButtons()
-        message = channel.sendMessageEmbeds(calcEmbed())
-            .setActionRows(selector).complete()
-        thread = message.createThreadChannel("4G - ${member1.nickname ?: member1.user.name} vs ${member2.nickname ?: member2.user.name}").complete()
-        threadMessage = thread.sendMessage(" \u1CBC ").setActionRows(selector).complete()
-        thread.addThreadMember(member1).complete()
-        thread.addThreadMember(member2).complete()
-        val mention = if (whoPlays) member1 else member2
-        thread.sendMessage("${mention.asMention} du bist am Zug!").queue()
+            //Game Start
+            val channel = guild.getTextChannelById(channelID)!!
+            val selector = calcButtons()
+            message = channel.sendMessageEmbeds(calcEmbed())
+                .setActionRows(selector).complete()
+            thread = message.createThreadChannel("4G - ${member1.nickname ?: member1.user.name} vs ${member2.nickname ?: member2.user.name}").complete()
+            threadMessage = thread.sendMessage(" \u1CBC ").setActionRows(selector).complete()
+            thread.addThreadMember(member1).complete()
+            thread.addThreadMember(member2).complete()
+            val mention = if (whoPlays) member1 else member2
+            thread.sendMessage("${mention.asMention} du bist am Zug!").queue()
 
-        if (bot != null && mention.id == member2.id)
-            CoroutineScope(Dispatchers.Default).launch {
-                botMove()
-            }
+            if (bot != null && mention.id == member2.id)
+                CoroutineScope(Dispatchers.Default).launch {
+                    botMove()
+                }
+        }
     }
 }

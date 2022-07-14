@@ -1,6 +1,7 @@
 package de.miraculixx.mcord.utils.manager
 
 import de.miraculixx.mcord.modules.games.chess.ChessListener
+import de.miraculixx.mcord.modules.games.connectFour.C4Listener
 import de.miraculixx.mcord.modules.games.idle.DropDownHelp
 import de.miraculixx.mcord.utils.entities.DropDownEvent
 import kotlinx.coroutines.CoroutineScope
@@ -17,6 +18,7 @@ class DropDownManager : ListenerAdapter() {
         val id = it.selectMenu.id ?: return
         val commandClass = when {
             id.startsWith("GAME_CHESS_") -> dropdowns["GAME_CHESS"] ?: return
+            id.startsWith("GAME_C4_") -> dropdowns["GAME_C4"] ?: return
 
             else -> dropdowns[id] ?: return
         }
@@ -28,5 +30,6 @@ class DropDownManager : ListenerAdapter() {
     init {
         dropdowns["GIdle_Info"] = DropDownHelp()
         dropdowns["GAME_CHESS"] = ChessListener()
+        dropdowns["GAME_C4"] = C4Listener()
     }
 }

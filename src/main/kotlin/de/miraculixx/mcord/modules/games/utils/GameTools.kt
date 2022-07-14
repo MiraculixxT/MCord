@@ -5,7 +5,7 @@ import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEve
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent
 import java.util.*
 
-class GameTools(private val gameTag: String, private val gameName: String, private val game: Games) {
+class GameTools(private val gameTag: String, private val gameName: String, private val game: Game) {
     fun command(it: SlashCommandInteractionEvent) {
         val subcommand = it.subcommandName ?: return
         val member = it.member ?: return
@@ -28,7 +28,7 @@ class GameTools(private val gameTag: String, private val gameName: String, priva
             }
             "bot" -> {
                 it.reply("```diff\n+ Neues Bot Game wird gestartet!\n+ Difficulty: Hard```").setEphemeral(true).queue()
-                GameManager.newGame(game, it.guild, listOf(member.id, it.jda.selfUser.id), it.channel.idLong)
+                GameManager.newGame(game, it.guild ?: return, listOf(member.id, it.jda.selfUser.id), it.channel.idLong)
             }
         }
     }
@@ -36,13 +36,13 @@ class GameTools(private val gameTag: String, private val gameName: String, priva
     suspend fun buttons(it: ButtonInteractionEvent) {
         val id = it.button.id?.removePrefix("GAME_${gameTag}_") ?: return
         val member = it.member ?: return
-        val guild = it.guild
+        val guild = it.guild ?: return
         val options = id.split('_')
 
         // GAME_TTT_ (first snippet)
         // P_<DATA> (options)
         when (options[0]) {
-            "P" -> GameManager.getGame(game, UUID.fromString(options[1]))
+            "P" -> GameManager.getGame(guild.idLong, game, UUID.fromString(options[1]))
                     ?.interact(options.subList(2, options.size), member, it)
             "R" -> {
                 it.message.delete().queue()

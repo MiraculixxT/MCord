@@ -4,5 +4,5 @@
 #                        lead to errors or shutdowns                         #
 #----------------------------------------------------------------------------#
 
-# Should the MUtils Stats Updater start on boot up?
-Updater: false
+# Should the Game Stats Updater start on boot up?
+Updater: true

@@ -4,8 +4,9 @@ import de.miraculixx.mcord.modules.games.chess.ChessGame
 import de.miraculixx.mcord.modules.games.connectFour.C4Game
 import de.miraculixx.mcord.modules.games.tictactoe.TTTGame
 import de.miraculixx.mcord.modules.games.utils.FieldsTwoPlayer
-import de.miraculixx.mcord.modules.games.utils.Games
+import de.miraculixx.mcord.modules.games.utils.Game
 import de.miraculixx.mcord.modules.games.utils.SimpleGame
+import de.miraculixx.mcord.utils.Color
 import de.miraculixx.mcord.utils.log
 import net.dv8tion.jda.api.entities.Emoji
 import net.dv8tion.jda.api.entities.Guild
@@ -17,10 +18,8 @@ import kotlin.collections.HashMap
 
 object GameManager {
     //Running Games
-    val tttGames = HashMap<UUID, TTTGame>()
-    val c4Games = HashMap<UUID, C4Game>()
-    val chessGames = HashMap<UUID, ChessGame>()
-
+    // HashMap<GuildID, Map<GameType, HashMap<GameID, GameInstance>>>
+    private val guilds = HashMap<Long, Map<Game, HashMap<UUID, SimpleGame>>>()
 
     fun searchGame(hook: InteractionHook, member: Member, gameTag: String, gameName: String) {
         hook.editOriginal(
@@ -44,61 +43,55 @@ object GameManager {
         ).queue()
     }
 
-    fun newGame(game: Games, guild: Guild?, members: List<String>, channelID: Long) {
-        when (game) {
-            Games.TIC_TAC_TOE -> {
-                val uuid = UUID.randomUUID()
-                tttGames[uuid] = TTTGame(
-                    guild?.getMemberById(members[0]) ?: return,
-                    guild.getMemberById(members[1]) ?: return,
-                    uuid,
-                    channelID,
-                    guild
-                )
-            }
-            Games.IDLE -> return
-            Games.FOUR_WINS -> {
-                val uuid = UUID.randomUUID()
-                c4Games[uuid] = C4Game(
-                    guild?.getMemberById(members[0]) ?: return,
-                    guild.getMemberById(members[1]) ?: return,
-                    uuid,
-                    guild,
-                    channelID
-                )
-            }
-            Games.CHESS -> {
-                val uuid = UUID.randomUUID()
-                chessGames[uuid] = ChessGame(
-                    guild?.getMemberById(members[0]) ?: return,
-                    guild.getMemberById(members[1]) ?: return,
-                    uuid,
-                    guild,
-                    channelID
-                )
-            }
+    fun newGame(game: Game, guild: Guild, members: List<String>, channelID: Long) {
+        if (guilds[guild.idLong] == null)
+            guilds[guild.idLong] = mapOf(Game.TIC_TAC_TOE to hashMapOf(), Game.FOUR_WINS to hashMapOf(), Game.CHESS to hashMapOf())
+        val uuid = UUID.randomUUID()
+        guilds[guild.idLong]!![game]!![uuid] = when (game) {
+            Game.TIC_TAC_TOE -> TTTGame(
+                guild.retrieveMemberById(members[1]).complete() ?: return,
+                guild.retrieveMemberById(members[1]).complete() ?: return,
+                uuid,
+                channelID,
+                guild
+            )
+            Game.FOUR_WINS -> C4Game(
+                guild.retrieveMemberById(members[1]).complete() ?: return,
+                guild.retrieveMemberById(members[1]).complete() ?: return,
+                uuid,
+                guild,
+                channelID
+            )
+            Game.CHESS -> ChessGame(
+                guild.retrieveMemberById(members[1]).complete() ?: return,
+                guild.retrieveMemberById(members[1]).complete() ?: return,
+                uuid,
+                guild,
+                channelID
+            )
+            else -> return
         }
     }
 
-    fun getGame(games: Games, uuid: UUID): SimpleGame? {
-        return when (games) {
-            Games.TIC_TAC_TOE -> tttGames[uuid]
-            Games.FOUR_WINS -> c4Games[uuid]
-            Games.IDLE -> null
-            Games.CHESS -> chessGames[uuid]
-        }
+    fun getGame(guildID: Long, type: Game, uuid: UUID): SimpleGame? {
+        return guilds[guildID]?.get(type)?.get(uuid)
+    }
+
+    fun removeGame(guildID: Long, type: Game, uuid: UUID): Boolean {
+        return guilds[guildID]?.get(type)?.remove(uuid) != null
     }
 
     fun shutdown() {
-        tttGames.forEach { (_, game) ->
-            game.setWinner(FieldsTwoPlayer.EMPTY)
+        "---=---> GAME MANAGER <---=---".log(Color.YELLOW)
+        guilds.forEach { (guild, data) ->
+            data.forEach { (type, games) ->
+                games.forEach { (uuid, instance) ->
+                    instance.setWinner(FieldsTwoPlayer.EMPTY)
+                    removeGame(guild, type, uuid)
+                }
+            }
+            " - Guild $guild offline".log(Color.YELLOW)
         }
-        c4Games.forEach { (_, game) ->
-            game.setWinner(FieldsTwoPlayer.EMPTY)
-        }
-        chessGames.forEach { (_, game) ->
-            game.setWinner(FieldsTwoPlayer.EMPTY)
-        }
-        "Game Manager offline".log()
+        "---=---=---=---=---=---=---=---".log(Color.YELLOW)
     }
 }

@@ -2,7 +2,11 @@ package de.miraculixx.mcord.modules.games.tictactoe
 
 import de.miraculixx.mcord.modules.games.GameManager
 import de.miraculixx.mcord.modules.games.utils.FieldsTwoPlayer
+import de.miraculixx.mcord.modules.games.utils.Game
 import de.miraculixx.mcord.modules.games.utils.SimpleGame
+import de.miraculixx.mcord.utils.Color
+import de.miraculixx.mcord.utils.api.SQL
+import de.miraculixx.mcord.utils.log
 import kotlinx.coroutines.delay
 import net.dv8tion.jda.api.EmbedBuilder
 import net.dv8tion.jda.api.entities.*
@@ -22,6 +26,7 @@ class TTTGame(
 
     // Who is playing the next step
     // True - P1 (red) || False - P2 (green)
+    private var guildID: Long
     private var whoPlays = Random.nextBoolean()
     private var winner: FieldsTwoPlayer? = null
     private val message: Message
@@ -91,7 +96,7 @@ class TTTGame(
         return builder.build()
     }
 
-    private fun checkWin() {
+    private suspend fun checkWin() {
         winner = getWinner() ?: return
         val replayButton = Button.primary("GAME_TTT_R_${member1.id}_${member2.id}", "Revanche").withEmoji(Emoji.fromUnicode("\uD83D\uDD01"))
         val msg = "~~========================~~\n\n" +
@@ -104,7 +109,13 @@ class TTTGame(
         thread.sendMessage(msg)
             .setEmbeds(EmbedBuilder().setDescription("Der Spiel-Bereich löscht sich in **30s**").build())
             .setActionRow(replayButton).queue()
-        GameManager.tttGames.remove(uuid)
+        GameManager.removeGame(guildID, Game.TIC_TAC_TOE, uuid)
+
+        //val ex = if (bot == null) "" else "_Bot"
+        if (winner == FieldsTwoPlayer.PLAYER_1)
+            SQL.addWin(member1.idLong, guildID, "TTT")
+        else if (winner == FieldsTwoPlayer.PLAYER_2)
+            SQL.addWin(member2.idLong, guildID, "TTT")
     }
 
     private fun getWinner(): FieldsTwoPlayer? {
@@ -184,7 +195,7 @@ class TTTGame(
         }
     }
 
-    fun setWinner(win: FieldsTwoPlayer) {
+    override fun setWinner(win: FieldsTwoPlayer) {
         winner = win
         message.editMessageEmbeds(calcEmbed()).setActionRows(calcButtons()).queue()
         thread.delete().queue()
@@ -192,6 +203,8 @@ class TTTGame(
 
     init {
         //Game Start
+        guildID = guild.idLong
+
         val channel = guild.getTextChannelById(channelID)!!
         message = channel.sendMessageEmbeds(calcEmbed())
             .setActionRows(calcButtons()).complete()

@@ -3,7 +3,7 @@ package de.miraculixx.mcord.modules.games.connectFour
 import de.miraculixx.mcord.config.ConfigManager
 import de.miraculixx.mcord.config.Configs
 import de.miraculixx.mcord.modules.games.utils.GameTools
-import de.miraculixx.mcord.modules.games.utils.Games
+import de.miraculixx.mcord.modules.games.utils.Game
 import de.miraculixx.mcord.modules.games.utils.SkinType
 import de.miraculixx.mcord.utils.api.SQL
 import de.miraculixx.mcord.utils.entities.SlashCommandEvent
@@ -20,8 +20,8 @@ class C4Command : SlashCommandEvent {
         if (subcommand == "skin") {
             //Building default skin dropdowns
             val conf = ConfigManager.getConfig(Configs.GAME_SETTINGS)
-            val primary = SelectMenu.create("GAME_4G_SKIN_1")
-            val secondary = SelectMenu.create("GAME_4G_SKIN_2")
+            val primary = SelectMenu.create("GAME_C4_SKIN_1")
+            val secondary = SelectMenu.create("GAME_C4_SKIN_2")
             primary.placeholder = "Primary Chip Skin"
             secondary.placeholder = "Secondary Chip Skin"
             primary.minValues = 1
@@ -33,7 +33,7 @@ class C4Command : SlashCommandEvent {
 
             //Filter already bought emotes
             val member = it.member ?: return
-            val userEmotes = SQL.getUser(member.idLong, true, false).emotes!!
+            val userEmotes = SQL.getUser(member.idLong, it.guild?.idLong?: return, emotes = true).emotes!!
             val primaryEmotes = userEmotes.owned.filter { it.key == "C4_Primary" }.values
             val secEmotes = userEmotes.owned.filter { it.key == "C4_Secondary" }.values
             conf.getObjectList<Int>("Connect4-RawEmotes").forEach { (emote, price) ->
@@ -74,7 +74,7 @@ class C4Command : SlashCommandEvent {
                 .setEphemeral(true).queue()
             return
         }
-        val tools = GameTools("4G", "4 Gewinnt", Games.FOUR_WINS)
+        val tools = GameTools("4G", "4 Gewinnt", Game.FOUR_WINS)
         tools.command(it)
     }
 

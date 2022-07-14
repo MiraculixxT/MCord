@@ -213,7 +213,7 @@ class ChessGame(
         }
     }
 
-    fun setWinner(win: FieldsTwoPlayer) {
+    override fun setWinner(win: FieldsTwoPlayer) {
         winner = win
         message.editMessageEmbeds(calcEmbed()).setActionRows().queue()
         thread.delete().queue()
