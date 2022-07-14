@@ -10,12 +10,13 @@ import de.miraculixx.mcord.utils.manager.ButtonManager
 import de.miraculixx.mcord.utils.manager.DropDownManager
 import de.miraculixx.mcord.utils.manager.ModalManager
 import de.miraculixx.mcord.utils.manager.SlashCommandManager
+import dev.minn.jda.ktx.jdabuilder.default
+import dev.minn.jda.ktx.jdabuilder.intents
 import io.ktor.client.*
 import io.ktor.client.engine.cio.*
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.runBlocking
 import net.dv8tion.jda.api.JDA
-import net.dv8tion.jda.api.JDABuilder
 import net.dv8tion.jda.api.OnlineStatus
 import net.dv8tion.jda.api.entities.Activity
 import net.dv8tion.jda.api.requests.GatewayIntent
@@ -34,7 +35,7 @@ class Main {
     }
 
     private val updater: Job?
-    var jda: JDA? = null
+    val jda: JDA
 
     init {
         INSTANCE = this
@@ -42,25 +43,22 @@ class Main {
 
         val coreConf = ConfigManager.getConfig(Configs.CORE)
         val settingsConf = ConfigManager.getConfig(Configs.SETTINGS)
-        val builder = JDABuilder.createDefault(coreConf.getString("DISCORD_TOKEN"))
-        builder.disableCache(CacheFlag.VOICE_STATE)
-        builder.setActivity(Activity.competing("Chess Games"))
-        builder.setStatus(OnlineStatus.DO_NOT_DISTURB)
-        builder.enableIntents(GatewayIntent.GUILD_MEMBERS)
-        val lateInits = listOf(SlashCommandManager())
-        builder.addEventListeners(ButtonManager(), DropDownManager(), ModalManager())
-        lateInits.forEach { builder.addEventListeners(it) }
 
-        jda = builder.build()
-        jda!!.awaitReady()
-
-        //LateInit Setup
-        lateInits.forEach {
-            it.setup()
+        jda = default(coreConf.getString("DISCORD_TOKEN")) {
+            disableCache(CacheFlag.VOICE_STATE)
+            setActivity(Activity.competing("Chess Games"))
+            setStatus(OnlineStatus.DO_NOT_DISTURB)
+            intents += listOf(GatewayIntent.GUILD_MEMBERS)
         }
+        jda.awaitReady()
+
+        ButtonManager.startListen(jda)
+        DropDownManager.startListen(jda)
+        ModalManager.startListen(jda)
+        SlashCommandManager.startListen(jda)
 
         updater = if (settingsConf.getBoolean("Updater"))
-            UpdaterGame.start(jda!!) else null
+            UpdaterGame.start(jda) else null
         SQL
         "MKord is now online!".log()
 
@@ -77,8 +75,8 @@ class Main {
                         KTOR.close()
                         updater?.cancel()
                         GameManager.shutdown()
-                        jda?.shardManager?.setStatus(OnlineStatus.OFFLINE)
-                        jda?.shutdown()
+                        jda.shardManager?.setStatus(OnlineStatus.OFFLINE)
+                        jda.shutdown()
                         println("MKord is now offline!")
                         online = false
                     }

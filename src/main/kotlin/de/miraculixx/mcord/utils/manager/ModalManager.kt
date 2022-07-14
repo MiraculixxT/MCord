@@ -1,29 +1,22 @@
 package de.miraculixx.mcord.utils.manager
 
 import de.miraculixx.mcord.modules.games.chess.ChessListener
-import de.miraculixx.mcord.utils.entities.ModalEvent
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
+import dev.minn.jda.ktx.events.listener
+import net.dv8tion.jda.api.JDA
 import net.dv8tion.jda.api.events.interaction.ModalInteractionEvent
 import net.dv8tion.jda.api.hooks.ListenerAdapter
 
-class ModalManager : ListenerAdapter() {
+object ModalManager {
+    private val modals = mapOf(
+        "chess" to ChessListener()
+    )
 
-    private val modals = HashMap<String, ModalEvent>()
-
-    override fun onModalInteraction(it: ModalInteractionEvent) {
+    fun startListen(jda: JDA) = jda.listener<ModalInteractionEvent> {
         val id = it.modalId
         val commandClass = when {
-            id.startsWith("GAME_CHESS_") -> modals["chess"] ?: return
-            else -> modals[id] ?: return
+            id.startsWith("GAME_CHESS_") -> modals["chess"]
+            else -> modals[id]
         }
-        CoroutineScope(Dispatchers.Default).launch {
-            commandClass.trigger(it)
-        }
-    }
-
-    init {
-        modals["chess"] = ChessListener()
+        commandClass?.trigger(it)
     }
 }

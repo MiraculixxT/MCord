@@ -3,33 +3,25 @@ package de.miraculixx.mcord.utils.manager
 import de.miraculixx.mcord.modules.games.chess.ChessListener
 import de.miraculixx.mcord.modules.games.connectFour.C4Listener
 import de.miraculixx.mcord.modules.games.idle.DropDownHelp
-import de.miraculixx.mcord.utils.entities.DropDownEvent
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
+import dev.minn.jda.ktx.events.listener
+import net.dv8tion.jda.api.JDA
 import net.dv8tion.jda.api.events.interaction.component.SelectMenuInteractionEvent
-import net.dv8tion.jda.api.hooks.ListenerAdapter
 
-class DropDownManager : ListenerAdapter() {
+object DropDownManager {
+    private val dropdowns = mapOf(
+        "GIdle_Info" to DropDownHelp(),
+        "GAME_CHESS" to ChessListener(),
+        "GAME_C4" to C4Listener()
+    )
 
-    private val dropdowns = HashMap<String, DropDownEvent>()
-
-    override fun onSelectMenuInteraction(it: SelectMenuInteractionEvent) {
-        val id = it.selectMenu.id ?: return
+    fun startListen(jda: JDA) = jda.listener<SelectMenuInteractionEvent> {
+        val id = it.selectMenu.id ?: return@listener
         val commandClass = when {
-            id.startsWith("GAME_CHESS_") -> dropdowns["GAME_CHESS"] ?: return
-            id.startsWith("GAME_C4_") -> dropdowns["GAME_C4"] ?: return
+            id.startsWith("GAME_CHESS_") -> dropdowns["GAME_CHESS"]
+            id.startsWith("GAME_C4_") -> dropdowns["GAME_C4"]
 
-            else -> dropdowns[id] ?: return
+            else -> dropdowns[id]
         }
-        CoroutineScope(Dispatchers.Default).launch {
-            commandClass.trigger(it)
-        }
-    }
-
-    init {
-        dropdowns["GIdle_Info"] = DropDownHelp()
-        dropdowns["GAME_CHESS"] = ChessListener()
-        dropdowns["GAME_C4"] = C4Listener()
+        commandClass?.trigger(it)
     }
 }

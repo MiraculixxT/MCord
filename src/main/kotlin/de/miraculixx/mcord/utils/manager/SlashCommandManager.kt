@@ -7,36 +7,31 @@ import de.miraculixx.mcord.modules.games.tictactoe.TTTCommand
 import de.miraculixx.mcord.modules.system.AdminCommand
 import de.miraculixx.mcord.modules.system.SetupCommand
 import de.miraculixx.mcord.utils.entities.LateInit
-import de.miraculixx.mcord.utils.entities.SlashCommandEvent
 import de.miraculixx.mcord.utils.log
-import dev.minn.jda.ktx.interactions.commands.*
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
+import dev.minn.jda.ktx.events.listener
+import dev.minn.jda.ktx.interactions.commands.Command
+import dev.minn.jda.ktx.interactions.commands.subcommand
+import net.dv8tion.jda.api.JDA
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent
 import net.dv8tion.jda.api.hooks.ListenerAdapter
 import net.dv8tion.jda.api.interactions.commands.OptionType
 
-class SlashCommandManager : ListenerAdapter(), LateInit {
+object SlashCommandManager : ListenerAdapter(), LateInit {
+    private val commands = mapOf(
+        "tictactoe" to TTTCommand(),
+        "connect-4" to C4Command(),
+        "chess" to ChessCommand(),
+        "setup" to SetupCommand(),
+        "admin" to AdminCommand()
+    )
 
-    private val commands = HashMap<String, SlashCommandEvent>()
-
-    override fun onSlashCommandInteraction(it: SlashCommandInteractionEvent) {
-        val commandClass = commands[it.name] ?: return
+    fun startListen(jda: JDA) = jda.listener<SlashCommandInteractionEvent> {
+        val commandClass = commands[it.name] ?: return@listener
         ">> ${it.user.asTag} -> /${it.name} ${it.subcommandName}".log()
-        CoroutineScope(Dispatchers.Default).launch {
-            commandClass.trigger(it)
-        }
+        commandClass.trigger(it)
     }
 
-    override fun setup() {
-        //Implement all Command Events
-        commands["tictactoe"] = TTTCommand()
-        commands["connect-4"] = C4Command()
-        commands["chess"] = ChessCommand()
-        commands["setup"] = SetupCommand()
-        commands["admin"] = AdminCommand()
-
+    init {
         //Implement all Commands into Discord
         val jda = Main.INSTANCE.jda
         val mainServer = jda?.getGuildById(707925156919771158)!!
