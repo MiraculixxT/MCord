@@ -1,32 +1,39 @@
 package de.miraculixx.mcord.utils.manager
 
-import de.miraculixx.mcord.INSTANCE
+import de.miraculixx.mcord.Main
 import de.miraculixx.mcord.modules.utils.commands.AdminCommand
+import de.miraculixx.mcord.utils.entities.LateInit
+import de.miraculixx.mcord.utils.entities.SlashCommandEvent
 import de.miraculixx.mcord.utils.guildMCreate
 import de.miraculixx.mcord.utils.guildMiraculixx
 import de.miraculixx.mcord.utils.log
-import dev.minn.jda.ktx.events.listener
-import net.dv8tion.jda.api.JDA
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent
+import net.dv8tion.jda.api.hooks.ListenerAdapter
 import net.dv8tion.jda.api.interactions.commands.OptionType
 import net.dv8tion.jda.api.interactions.commands.build.Commands
+import net.dv8tion.jda.api.interactions.commands.build.SubcommandData
 
-object SlashCommandManager {
-    private val commands = mapOf(
-        "admin" to AdminCommand()
-    )
+class SlashCommandManager : ListenerAdapter(), LateInit {
 
-    fun startListen(jda: JDA) {
-        jda.listener<SlashCommandInteractionEvent> {
-            val commandClass = commands[it.name] ?: return@listener
-            ">> ${it.user.asTag} -> /${it.name}".log()
+    private val commands = HashMap<String, SlashCommandEvent>()
+
+    override fun onSlashCommandInteraction(it: SlashCommandInteractionEvent) {
+        val commandClass = commands[it.name] ?: return
+        ">> ${it.user.asTag} -> /${it.name}".log()
+        CoroutineScope(Dispatchers.Default).launch {
             commandClass.trigger(it)
         }
     }
 
-    init {
+    override fun setup() {
+        //Implement all Command Events
+        commands["admin"] = AdminCommand()
+
         //Implement all Commands into Discord
-        val jda = INSTANCE.jda
+        val jda = Main.INSTANCE.jda!!
 
         guildMCreate.updateCommands()
             .addCommands(
@@ -47,6 +54,24 @@ object SlashCommandManager {
                 Commands.slash("admin", "A Admin only command for testing")
                     .addOption(OptionType.STRING, "call", "Action to do", true, true)
                     .addOption(OptionType.BOOLEAN, "status", "Switch Online Status of MUtils"),
+
+                Commands.slash("tictactoe", "Spiele Tic-Tac-Toe gegen einen anderen Nutzer")
+                    .addSubcommands(
+                        SubcommandData("user", "Spiele Tic-Tac-Toe gegen einen anderen Nutzer")
+                            .addOption(OptionType.USER, "request", "Sende eine Anfrage an einen genauen Nutzer")
+                    ),
+                Commands.slash("connect-4", "Spiele 4 Gewinnt gegen andere oder eine AI")
+                    .addSubcommands(
+                        SubcommandData("user", "Spiele 4 Gewinnt gegen einen anderen Nutzer")
+                            .addOption(OptionType.USER, "request", "Sende eine Anfrage an einen genauen Nutzer"),
+                        SubcommandData("bot", "Spiele alleine gegen die Bot AI"),
+                        SubcommandData("skin", "Wähle einen Skin für deinen Spielchip")
+                    ),
+                Commands.slash("chess", "Spiele Schach gegen einen anderen Nutzer")
+                    .addSubcommands(
+                        SubcommandData("user", "Spiele Schach gegen einen anderen Nutzer")
+                            .addOption(OptionType.USER, "request", "Sende eine Anfrage an einen genauen Nutzer")
+                    ),
             ).queue()
         jda.updateCommands().queue()
     }

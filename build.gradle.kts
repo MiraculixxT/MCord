@@ -8,12 +8,12 @@ version = "1.0"
 
 repositories {
     mavenCentral()
-    maven("https://jitpack.io/")
+    //maven("https://jitpack.io/")
 }
 
 dependencies {
-    implementation("net.dv8tion", "JDA", "5.0.0-alpha.13")
-    implementation("com.github.minndevelopment", "jda-ktx","0.9.2-alpha.13")
+    implementation("net.dv8tion", "JDA", "5.0.0-alpha.11")
+    implementation("club.minnced", "discord-webhooks", "0.8.0")
 
     implementation("org.jetbrains.kotlinx", "kotlinx-serialization-json", "1.3.3")
 

@@ -1,26 +1,29 @@
 package de.miraculixx.mcord.utils.manager
 
-import de.miraculixx.mcord.modules.suggest.DropdownNewSuggest
 import de.miraculixx.mcord.modules.suggest.DropdownSuggest
-import dev.minn.jda.ktx.events.listener
-import net.dv8tion.jda.api.JDA
+import de.miraculixx.mcord.utils.entities.DropDownEvent
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import net.dv8tion.jda.api.events.interaction.component.SelectMenuInteractionEvent
+import net.dv8tion.jda.api.hooks.ListenerAdapter
 
-object DropDownManager {
-    private val dropdowns = mapOf(
-        "vorschlag" to DropdownSuggest(),
-        "SUGGEST" to DropdownNewSuggest()
-    )
+class DropDownManager : ListenerAdapter() {
 
-    fun startListen(jda: JDA) {
-        jda.listener<SelectMenuInteractionEvent> {
-            val id = it.selectMenu.id ?: return@listener
-            val commandClass = when {
-                id.startsWith("SUGGEST_") -> dropdowns["SUGGEST"]
+    private val dropdowns = HashMap<String, DropDownEvent>()
 
-                else -> dropdowns[id]
-            }
-            commandClass?.trigger(it)
+    override fun onSelectMenuInteraction(it: SelectMenuInteractionEvent) {
+        val id = it.selectMenu.id ?: return
+        val commandClass = when {
+
+            else -> dropdowns[id] ?: return
         }
+        CoroutineScope(Dispatchers.Default).launch {
+            commandClass.trigger(it)
+        }
+    }
+
+    init {
+        dropdowns["vorschlag"] = DropdownSuggest()
     }
 }

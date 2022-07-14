@@ -1,26 +1,29 @@
 package de.miraculixx.mcord.utils.manager
 
 import de.miraculixx.mcord.modules.suggest.ModalSuggest
-import dev.minn.jda.ktx.events.listener
-import net.dv8tion.jda.api.JDA
+import de.miraculixx.mcord.utils.entities.ModalEvent
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import net.dv8tion.jda.api.events.interaction.ModalInteractionEvent
+import net.dv8tion.jda.api.hooks.ListenerAdapter
 
-object ModalManager {
+class ModalManager : ListenerAdapter() {
 
-    private val modals = mapOf(
-        "vorschlag" to ModalSuggest(),
-    )
+    private val modals = HashMap<String, ModalEvent>()
 
-    fun startListen(jda: JDA) {
-        jda.listener<ModalInteractionEvent> {
-            val id = it.modalId
-            val commandClass = when {
-                id.startsWith("vorschlag") -> modals["vorschlag"]
-                id.startsWith("SUGGEST_") -> modals["SUGGEST"]
-
-                else -> modals[id]
-            }
-            commandClass?.trigger(it)
+    override fun onModalInteraction(it: ModalInteractionEvent) {
+        val id = it.modalId
+        val commandClass = when {
+            id.startsWith("vorschlag") -> modals["vorschlag"] ?: return
+            else -> modals[id] ?: return
         }
+        CoroutineScope(Dispatchers.Default).launch {
+            commandClass.trigger(it)
+        }
+    }
+
+    init {
+        modals["vorschlag"] = ModalSuggest()
     }
 }
