@@ -1,7 +1,7 @@
 package de.miraculixx.mcord.utils.manager
 
 import de.miraculixx.mcord.modules.games.chess.ChessButton
-import de.miraculixx.mcord.modules.games.connectFour.C4Listener
+import de.miraculixx.mcord.modules.games.connectFour.C4Button
 import de.miraculixx.mcord.modules.games.idle.ButtonLoadBuildings
 import de.miraculixx.mcord.modules.games.idle.ButtonLoadUpgrades
 import de.miraculixx.mcord.modules.games.tictactoe.TTTListener
@@ -14,7 +14,7 @@ object ButtonManager {
         "GIdle_LoadUpgrades" to ButtonLoadUpgrades(),
         "GIdle_LoadBuildings" to ButtonLoadBuildings(),
         "GAME_TTT" to TTTListener(),
-        "GAME_4G" to C4Listener(),
+        "GAME_4G" to C4Button(),
         "GAME_CHESS" to ChessButton()
     )
 

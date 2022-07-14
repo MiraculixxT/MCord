@@ -1,23 +1,12 @@
-@file:Suppress("BooleanLiteralArgument")
-
 package de.miraculixx.mcord.modules.games.connectFour
 
-import de.miraculixx.mcord.modules.games.utils.Game
-import de.miraculixx.mcord.modules.games.utils.GameTools
 import de.miraculixx.mcord.utils.api.SQL
-import de.miraculixx.mcord.utils.entities.ButtonEvent
 import de.miraculixx.mcord.utils.entities.DropDownEvent
 import net.dv8tion.jda.api.entities.Member
-import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent
 import net.dv8tion.jda.api.events.interaction.component.SelectMenuInteractionEvent
 import net.dv8tion.jda.api.interactions.InteractionHook
 
-class C4Listener : ButtonEvent, DropDownEvent {
-    override suspend fun trigger(it: ButtonInteractionEvent) {
-        val tools = GameTools("4G", "4 Gewinnt", Game.FOUR_WINS)
-        tools.buttons(it)
-    }
-
+class C4DropDown: DropDownEvent {
     override suspend fun trigger(it: SelectMenuInteractionEvent) {
         val member = it.member ?: return
         val secondary = it.selectMenu.id?.split('_')?.get(3) == "2"
