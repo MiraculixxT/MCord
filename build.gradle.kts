@@ -12,7 +12,7 @@ repositories {
 }
 
 dependencies {
-    implementation("net.dv8tion", "JDA", "5.0.0-alpha.11")
+    implementation("net.dv8tion", "JDA", "5.0.0-alpha.13")
     implementation("com.github.minndevelopment", "jda-ktx","0.9.2-alpha.13")
 
     implementation("org.jetbrains.kotlinx", "kotlinx-datetime", "0.4.0")

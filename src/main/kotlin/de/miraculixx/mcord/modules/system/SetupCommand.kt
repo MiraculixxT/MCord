@@ -8,7 +8,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import net.dv8tion.jda.api.Permission
-import net.dv8tion.jda.api.entities.Emoji
+import net.dv8tion.jda.api.entities.emoji.Emoji
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent
 import net.dv8tion.jda.api.exceptions.InsufficientPermissionException
 import net.dv8tion.jda.api.interactions.components.buttons.Button
@@ -61,7 +61,7 @@ class SetupCommand : SlashCommandEvent {
                     } else {
                         hook.editOriginal("```diff\n- Your Guild does not own Premium!\n- Activate it in MCreate (Bots Master-Guild) or get it on our Webshop!```")
                             .setActionRow(
-                                Button.link("https://discord.gg/VEcR8RbnSH", "MCreate").withEmoji(Emoji.fromMarkdown("<:mutils:975780449903341579>")),
+                                Button.link("https://discord.gg/VEcR8RbnSH", "MCreate").withEmoji(Emoji.fromFormatted("<:mutils:975780449903341579>")),
                                 Button.link("https://miraculixx.de/mcreate/shop", "Webshop").withEmoji(Emoji.fromUnicode("\uD83D\uDED2"))
                             )
                             .queue()

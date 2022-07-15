@@ -17,7 +17,9 @@ class GameTools(private val gameTag: String, private val gameName: String, priva
                 if (opponent != null) {
                     if (opponent.id == member.id)
                         it.reply("```diff\n- Du kannst nicht gegen dich selbst spielen```").setEphemeral(true).queue()
-                    else {
+                    else if (opponent.user.isBot) {
+                        it.reply("```diff\n- Du kannst nicht gegen Bots spielen!\n- Nutze /<game> bot```").setEphemeral(true).queue()
+                    } else {
                         it.deferReply().queue()
                         GameManager.requestGame(hook, member, opponent, gameTag, gameName)
                     }

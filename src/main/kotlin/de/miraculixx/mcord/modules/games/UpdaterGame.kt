@@ -19,7 +19,6 @@ import net.dv8tion.jda.api.entities.Guild
 import net.dv8tion.jda.api.entities.MessageHistory
 import net.dv8tion.jda.api.entities.TextChannel
 import net.dv8tion.jda.api.exceptions.InsufficientPermissionException
-import okhttp3.internal.wait
 import java.sql.ResultSet
 import kotlin.time.Duration.Companion.hours
 import kotlin.time.Duration.Companion.minutes
@@ -109,29 +108,29 @@ object UpdaterGame {
                     description = "Updates <t:${Clock.System.now().plus(1.hours).epochSeconds}:R>\n```fix\nWer ist der beste Zocker hier?```"
                     field {
                         name = "Coins :coin:"
-                        value = buildField(resp, "Coins", false)
+                        value = buildField(resp, false, "Coins")
                     }
                     field {
                         name = "Top 10"
-                        value = buildField(resp, "Coins", true)
+                        value = buildField(resp, true, "Coins")
                     }
                 },
                 Embed {
                     color = 0xc29113
                     field {
-                        val resp2 = SQL.call("SELECT Discord_ID, TTT FROM userWins, userData WHERE Guild_ID=$guildID ORDER BY TTT DESC LIMIT 5")
+                        val resp2 = SQL.call("SELECT Discord_ID, TTT, TTT_Bot FROM userWins, userData WHERE Guild_ID=$guildID && userData.ID=userWins.ID ORDER BY TTT DESC LIMIT 5")
                         name = "TTT Wins"
-                        value = buildField(resp2, "TTT", false)
+                        value = buildField(resp2, false, "TTT", "TTT_Bot")
                     }
                     field {
-                        val resp2 = SQL.call("SELECT Discord_ID, C4 FROM userWins, userData WHERE Guild_ID=$guildID ORDER BY TTT DESC LIMIT 5")
+                        val resp2 = SQL.call("SELECT Discord_ID, C4, C4_Bot FROM userWins, userData WHERE Guild_ID=$guildID && userData.ID=userWins.ID ORDER BY C4 DESC LIMIT 5")
                         name = "C4 Wins"
-                        value = buildField(resp2, "C4", true)
+                        value = buildField(resp2, true, "C4", "C4_Bot")
                     }
                     field {
-                        val resp2 = SQL.call("SELECT Discord_ID, Chess FROM userWins, userData WHERE Guild_ID=$guildID ORDER BY Chess DESC LIMIT 5")
+                        val resp2 = SQL.call("SELECT Discord_ID, Chess, Chess_Bot FROM userWins, userData WHERE Guild_ID=$guildID && userData.ID=userWins.ID ORDER BY Chess DESC LIMIT 5")
                         name = "Chess Wins"
-                        value = buildField(resp2, "Chess", true)
+                        value = buildField(resp2, true, "Chess", "Chess_Bot")
                     }
                 }
             )
@@ -147,12 +146,14 @@ object UpdaterGame {
         }
     }
 
-    private fun buildField(response: ResultSet, key: String, inline: Boolean): String {
+    private fun buildField(response: ResultSet, inline: Boolean, key: String, key2: String? = null): String {
         return buildString {
             val m = if (inline) "> " else ""
             repeat(5) {
-                if (response.next())
-                    append("$m<@${response.getString("Discord_ID")}> - ${response.getString(key)}\n")
+                if (response.next()) {
+                    val addon = if (key2 != null) " | ${response.getString(key2)}" else ""
+                    append("$m<@${response.getString("Discord_ID")}> - ${response.getString(key)}$addon\n")
+                }
                 else append("$m*Empty*\n")
             }
         }

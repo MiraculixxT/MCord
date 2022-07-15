@@ -8,9 +8,9 @@ import de.miraculixx.mcord.modules.games.utils.Game
 import de.miraculixx.mcord.modules.games.utils.SimpleGame
 import de.miraculixx.mcord.utils.Color
 import de.miraculixx.mcord.utils.log
-import net.dv8tion.jda.api.entities.Emoji
 import net.dv8tion.jda.api.entities.Guild
 import net.dv8tion.jda.api.entities.Member
+import net.dv8tion.jda.api.entities.emoji.Emoji
 import net.dv8tion.jda.api.interactions.InteractionHook
 import net.dv8tion.jda.api.interactions.components.buttons.Button
 import java.util.*
@@ -49,21 +49,21 @@ object GameManager {
         val uuid = UUID.randomUUID()
         guilds[guild.idLong]!![game]!![uuid] = when (game) {
             Game.TIC_TAC_TOE -> TTTGame(
-                guild.retrieveMemberById(members[1]).complete() ?: return,
+                guild.retrieveMemberById(members[0]).complete() ?: return,
                 guild.retrieveMemberById(members[1]).complete() ?: return,
                 uuid,
                 channelID,
                 guild
             )
             Game.FOUR_WINS -> C4Game(
-                guild.retrieveMemberById(members[1]).complete() ?: return,
+                guild.retrieveMemberById(members[0]).complete() ?: return,
                 guild.retrieveMemberById(members[1]).complete() ?: return,
                 uuid,
                 guild,
                 channelID
             )
             Game.CHESS -> ChessGame(
-                guild.retrieveMemberById(members[1]).complete() ?: return,
+                guild.retrieveMemberById(members[0]).complete() ?: return,
                 guild.retrieveMemberById(members[1]).complete() ?: return,
                 uuid,
                 guild,

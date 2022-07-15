@@ -14,6 +14,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import net.dv8tion.jda.api.EmbedBuilder
 import net.dv8tion.jda.api.entities.*
+import net.dv8tion.jda.api.entities.emoji.Emoji
 import net.dv8tion.jda.api.events.interaction.component.GenericComponentInteractionCreateEvent
 import net.dv8tion.jda.api.interactions.components.ActionRow
 import net.dv8tion.jda.api.interactions.components.buttons.Button
@@ -80,7 +81,7 @@ class C4Game(
             stringBuilder.append(" **║**")
             rowI++
         }
-        stringBuilder.append("\n> ` ` `1  2  3  4  5  6  7` ` `")
+        stringBuilder.append("\n> **║** <:11:989885132418711564><:22:989886289803374714><:33:989886474679881749><:44:989886595970777148><:55:989886723792203828><:66:989886928197402635><:77:989887121449975818> **║**")
         builder.addField(
             "~~<                                                                            >~~",
             stringBuilder.toString(), false
@@ -101,7 +102,7 @@ class C4Game(
                 } else buttons.add(Button.danger("Baum$columnI", "$columnI").asDisabled())
                 columnI++
             }
-            val blanc = Emoji.fromMarkdown("<:blanc:784059217890770964>")
+            val blanc = Emoji.fromFormatted("<:blanc:784059217890770964>")
             val row1 = ActionRow.of(buttons[1], buttons[2], buttons[3], buttons[4], buttons[5])
             val row2 = ActionRow.of(
                 buttons[0], Button.secondary("BLANC1", blanc).asDisabled(),
@@ -200,8 +201,15 @@ class C4Game(
         ).queue()
         whoPlays = !whoPlays
 
-        if (checkWinner(who)) {
-            winner = who
+        var full = true
+        fields.forEach { r ->
+            if (r.contains(FieldsTwoPlayer.EMPTY)) {
+                full = false
+                return@forEach
+            }
+        }
+        if (checkWinner(who) || full) {
+            winner = if (!full) who else FieldsTwoPlayer.EMPTY
             val replayButton = Button.primary("GAME_4G_R_${member1.id}_${member2.id}", "Revanche").withEmoji(Emoji.fromUnicode("\uD83D\uDD01"))
             val msg = "~~========================~~\n\n" +
                     "**\uD83C\uDFC1 || Das Spiel wurde beendet!**\n" +

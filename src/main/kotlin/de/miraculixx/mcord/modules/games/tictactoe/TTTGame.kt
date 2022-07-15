@@ -4,12 +4,11 @@ import de.miraculixx.mcord.modules.games.GameManager
 import de.miraculixx.mcord.modules.games.utils.FieldsTwoPlayer
 import de.miraculixx.mcord.modules.games.utils.Game
 import de.miraculixx.mcord.modules.games.utils.SimpleGame
-import de.miraculixx.mcord.utils.Color
 import de.miraculixx.mcord.utils.api.SQL
-import de.miraculixx.mcord.utils.log
 import kotlinx.coroutines.delay
 import net.dv8tion.jda.api.EmbedBuilder
 import net.dv8tion.jda.api.entities.*
+import net.dv8tion.jda.api.entities.emoji.Emoji
 import net.dv8tion.jda.api.events.interaction.component.GenericComponentInteractionCreateEvent
 import net.dv8tion.jda.api.interactions.components.ActionRow
 import net.dv8tion.jda.api.interactions.components.buttons.Button
@@ -38,9 +37,9 @@ class TTTGame(
 
     private fun calcButtons(): List<ActionRow> {
         val rows = ArrayList<ActionRow>()
-        val blancEmote = Emoji.fromMarkdown("<:blanc:784059217890770964>")
-        val xEmote = Emoji.fromMarkdown("<:xx:988156472020066324>")
-        val oEmote = Emoji.fromMarkdown("<:oo:988156473274163200>")
+        val blancEmote = Emoji.fromFormatted("<:blanc:784059217890770964>")
+        val xEmote = Emoji.fromFormatted("<:xx:988156472020066324>")
+        val oEmote = Emoji.fromFormatted("<:oo:988156473274163200>")
 
         var rowI = 0
         fields.forEach { row ->

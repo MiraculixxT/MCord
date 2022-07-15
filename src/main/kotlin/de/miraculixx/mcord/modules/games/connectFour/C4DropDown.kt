@@ -6,7 +6,7 @@ import net.dv8tion.jda.api.entities.Member
 import net.dv8tion.jda.api.events.interaction.component.SelectMenuInteractionEvent
 import net.dv8tion.jda.api.interactions.InteractionHook
 
-class C4DropDown: DropDownEvent {
+class C4DropDown : DropDownEvent {
     override suspend fun trigger(it: SelectMenuInteractionEvent) {
         val member = it.member ?: return
         val secondary = it.selectMenu.id?.split('_')?.get(3) == "2"
@@ -31,7 +31,7 @@ class C4DropDown: DropDownEvent {
             else -> {
                 val id = member.idLong
                 val user = SQL.getUser(member.idLong, guildID, emotes = true)
-                val type = if (secondary) "C4_Secondary" else "C4_Primary"
+                val type = if (secondary) "C4_S" else "C4_P"
                 if (user.emotes!!.owned.filter { it.key == type }.containsValue(emote))
                     applyEmote(emote, member, guildID, secondary, hook, user.emotes)
 
@@ -57,7 +57,7 @@ class C4DropDown: DropDownEvent {
         }
         SQL.setActiveEmote(
             id, guildID,
-            if (secondary) "C4_Secondary" else "C4_Primary",
+            if (secondary) "C4_S" else "C4_P",
             emote
         )
         hook.editOriginal("✅ **|| Skin Erfolgreich Geändert**\nDu nutzt nun $emote als 4 Gewinnt Spielstein").queue()

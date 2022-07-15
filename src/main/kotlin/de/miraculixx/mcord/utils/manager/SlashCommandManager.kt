@@ -12,6 +12,7 @@ import dev.minn.jda.ktx.interactions.commands.Command
 import dev.minn.jda.ktx.interactions.commands.subcommand
 import net.dv8tion.jda.api.JDA
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent
+import net.dv8tion.jda.api.interactions.commands.DefaultMemberPermissions
 import net.dv8tion.jda.api.interactions.commands.OptionType
 
 object SlashCommandManager {
@@ -77,7 +78,7 @@ object SlashCommandManager {
         mainServer.updateCommands()
             .addCommands(
                 Command("admin", "Admin Command") {
-                    isDefaultEnabled = false
+                    defaultPermissions = DefaultMemberPermissions.DISABLED
                     subcommand("swap-daily", "Ändern der Täglichen Challenges")
                     subcommand("refresh-stats", "Erneuert die Stats")
                 }
