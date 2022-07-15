@@ -28,7 +28,8 @@ class C4Game(
     private val member2: Member,
     private val uuid: UUID,
     guild: Guild,
-    channelID: Long
+    channelID: Long,
+    botLevel: Int = 0
 ) : SimpleGame {
 
     private lateinit var member1Emote: String
@@ -245,9 +246,8 @@ class C4Game(
 
     init {
         if (member2.user.isBot) {
-            //BOT GAME
             "GAME > Start Bot Game".log()
-            bot = C4Bot()
+            bot = C4Bot(botLevel)
         }
         guildID = guild.idLong
 

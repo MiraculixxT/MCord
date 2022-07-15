@@ -29,7 +29,8 @@ class GameTools(private val gameTag: String, private val gameName: String, priva
                 }
             }
             "bot" -> {
-                it.reply("```diff\n+ Neues Bot Game wird gestartet!\n+ Difficulty: Hard```").setEphemeral(true).queue()
+                val option = it.getOption("difficulty")!!.asString
+                it.reply("```diff\n+ Neues Bot Game wird gestartet!\n+ Difficulty: $option```").setEphemeral(true).queue()
                 GameManager.newGame(game, it.guild ?: return, listOf(member.id, it.jda.selfUser.id), it.channel.idLong)
             }
         }

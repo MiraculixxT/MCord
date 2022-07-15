@@ -3,7 +3,7 @@ package de.miraculixx.mcord.modules.games.connectFour
 import de.miraculixx.mcord.modules.games.utils.FieldsTwoPlayer
 import de.miraculixx.mcord.utils.api.callCustomAPI
 
-class C4Bot {
+class C4Bot(private val level: Int) {
 
     // Returns Column
     suspend fun getNextMove(array: Array<Array<FieldsTwoPlayer>>): Int {

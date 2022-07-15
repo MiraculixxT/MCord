@@ -1,10 +1,12 @@
 package de.miraculixx.mcord.modules.games.tictactoe
 
 import de.miraculixx.mcord.modules.games.GameManager
+import de.miraculixx.mcord.modules.games.connectFour.C4Bot
 import de.miraculixx.mcord.modules.games.utils.FieldsTwoPlayer
 import de.miraculixx.mcord.modules.games.utils.Game
 import de.miraculixx.mcord.modules.games.utils.SimpleGame
 import de.miraculixx.mcord.utils.api.SQL
+import de.miraculixx.mcord.utils.log
 import kotlinx.coroutines.delay
 import net.dv8tion.jda.api.EmbedBuilder
 import net.dv8tion.jda.api.entities.*
@@ -20,11 +22,13 @@ class TTTGame(
     private val member1: Member, private val member2: Member,
     private val uuid: UUID,
     channelID: Long,
-    guild: Guild
+    guild: Guild,
+    botLevel: Int
 ) : SimpleGame {
 
     // Who is playing the next step
     // True - P1 (red) || False - P2 (green)
+    private val bot: TTTBot?
     private var guildID: Long
     private var whoPlays = Random.nextBoolean()
     private var winner: FieldsTwoPlayer? = null
@@ -150,10 +154,10 @@ class TTTGame(
         return FieldsTwoPlayer.EMPTY
     }
 
-    override suspend fun interact(options: List<String>, interactor: Member, event: GenericComponentInteractionCreateEvent) {
+    override suspend fun interact(options: List<String>, interactor: Member, event: GenericComponentInteractionCreateEvent?) {
         val memberID = interactor.idLong
         if (memberID != member1.idLong && memberID != member2.idLong) {
-            event.reply("```diff\n- Du bist kein Teil dieser Partie!\nStarte eine eigene über /tictactoe <user>```").setEphemeral(true).queue()
+            event?.reply("```diff\n- Du bist kein Teil dieser Partie!\nStarte eine eigene über /tictactoe <user>```")?.setEphemeral(true)?.queue()
             return
         }
         val row = options[0].toInt()
@@ -167,7 +171,7 @@ class TTTGame(
                             "> ${member2.asMention} du bist am Zug!"
                 ).queue()
             } else {
-                event.reply("```diff\n- Du bist gerade nicht am Zug!```").setEphemeral(true).queue()
+                event?.reply("```diff\n- Du bist gerade nicht am Zug!```")?.setEphemeral(true)?.queue()
                 return
             }
         } else {
@@ -179,7 +183,7 @@ class TTTGame(
                 ).queue()
                 whoPlays = true
             } else {
-                event.reply("```diff\n- Du bist gerade nicht am Zug!```").setEphemeral(true).queue()
+                event?.reply("```diff\n- Du bist gerade nicht am Zug!```")?.setEphemeral(true)?.queue()
                 return
             }
         }
@@ -187,11 +191,18 @@ class TTTGame(
         val buttons = calcButtons()
         message.editMessageEmbeds(calcEmbed()).setActionRows(buttons).complete()
         threadMessage.editMessageComponents(buttons).complete()
-        event.editMessage(event.message.contentRaw).queue()
+        event?.editMessage(event.message.contentRaw)?.queue()
         if (winner != null) {
             delay(30.seconds)
             thread.delete().queue()
-        }
+        } else if (bot != null) botMove()
+    }
+
+    private suspend fun botMove() {
+        delay(1.seconds)
+        val pos = bot?.getMove(fields)!!
+        fields[pos.first][pos.second] = FieldsTwoPlayer.PLAYER_2
+        interact(listOf(pos.first.toString(), pos.second.toString()), member2, null)
     }
 
     override fun setWinner(win: FieldsTwoPlayer) {
@@ -201,7 +212,10 @@ class TTTGame(
     }
 
     init {
-        //Game Start
+        if (member2.user.isBot) {
+            "GAME > Start TTT Bot Game".log()
+            bot = TTTBot(botLevel, FieldsTwoPlayer.PLAYER_2)
+        }
         guildID = guild.idLong
 
         val channel = guild.getTextChannelById(channelID)!!

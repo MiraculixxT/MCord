@@ -33,7 +33,7 @@ object SlashCommandManager {
     init {
         //Implement all Commands into Discord
         val jda = Main.INSTANCE.jda
-        val mainServer = jda.getGuildById(707925156919771158)!!
+        val mainServer = jda.getGuildById(707925156919771158)
         jda.updateCommands().addCommands(
             Command("tictactoe", "Play Tic-Tac-Toe against others") {
                 subcommand("user", "Play Tic-Tac-Toe against an other User") {
@@ -75,13 +75,13 @@ object SlashCommandManager {
                 }
             }
         ).queue()
-        mainServer.updateCommands()
-            .addCommands(
+        mainServer?.updateCommands()
+            ?.addCommands(
                 Command("admin", "Admin Command") {
                     defaultPermissions = DefaultMemberPermissions.DISABLED
                     subcommand("swap-daily", "Ändern der Täglichen Challenges")
                     subcommand("refresh-stats", "Erneuert die Stats")
                 }
-            ).queue()
+            )?.queue()
     }
 }
