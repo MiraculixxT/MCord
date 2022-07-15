@@ -1,7 +1,6 @@
 package de.miraculixx.mcord.modules.games.tictactoe
 
 import de.miraculixx.mcord.modules.games.GameManager
-import de.miraculixx.mcord.modules.games.connectFour.C4Bot
 import de.miraculixx.mcord.modules.games.utils.FieldsTwoPlayer
 import de.miraculixx.mcord.modules.games.utils.Game
 import de.miraculixx.mcord.modules.games.utils.SimpleGame
@@ -215,7 +214,7 @@ class TTTGame(
         if (member2.user.isBot) {
             "GAME > Start TTT Bot Game".log()
             bot = TTTBot(botLevel, FieldsTwoPlayer.PLAYER_2)
-        }
+        } else bot = null
         guildID = guild.idLong
 
         val channel = guild.getTextChannelById(channelID)!!

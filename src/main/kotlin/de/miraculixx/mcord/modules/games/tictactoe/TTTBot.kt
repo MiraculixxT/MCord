@@ -9,7 +9,8 @@ class TTTBot(private val level: Int, private val player: FieldsTwoPlayer) {
     fun getMove(board: Array<Array<FieldsTwoPlayer>>): Pair<Int, Int> {
         return when (level) {
             1 -> getRandomMove(board)
-            2 -> getSmartMove(board, getMovesCount(board))
+            2 -> getDangerPosition(board) ?: getRandomMove(board)
+            3 -> getSmartMove(board, getMovesCount(board))
             else -> 0 to 0
         }
     }
@@ -87,7 +88,7 @@ class TTTBot(private val level: Int, private val player: FieldsTwoPlayer) {
     private fun countEntries(array: Array<FieldsTwoPlayer>, entry: FieldsTwoPlayer): Int {
         var counter = 0
         array.forEach {
-            if (it == player)
+            if (it == entry)
                 counter++
         }
         return counter

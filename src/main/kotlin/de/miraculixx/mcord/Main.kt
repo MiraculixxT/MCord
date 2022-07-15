@@ -4,6 +4,7 @@ import de.miraculixx.mcord.config.ConfigManager
 import de.miraculixx.mcord.config.Configs
 import de.miraculixx.mcord.modules.games.GameManager
 import de.miraculixx.mcord.modules.games.UpdaterGame
+import de.miraculixx.mcord.modules.utils.events.TabComplete
 import de.miraculixx.mcord.utils.api.SQL
 import de.miraculixx.mcord.utils.log
 import de.miraculixx.mcord.utils.manager.ButtonManager
@@ -56,6 +57,7 @@ class Main {
         DropDownManager.startListen(jda)
         ModalManager.startListen(jda)
         SlashCommandManager.startListen(jda)
+        TabComplete.startListen(jda)
 
         updater = if (settingsConf.getBoolean("Updater"))
             UpdaterGame.start(jda) else null

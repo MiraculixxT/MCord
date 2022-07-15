@@ -163,15 +163,15 @@ class ChessGame(
         } else hook.editOriginal("```diff\n- Diese Figur hat keine Bewegungsmöglichkeiten!```").queue()
     }
 
-    override suspend fun interact(options: List<String>, interactor: Member, event: GenericComponentInteractionCreateEvent) {
+    override suspend fun interact(options: List<String>, interactor: Member, event: GenericComponentInteractionCreateEvent?) {
         val who = if (whoPlays) player1 else player2
         //Check if correct person is playing
         if (who.id != player1.id && who.id != player2.id) {
-            event.reply("diff\n- Du spielst in diesem Spiel nicht mit!").setEphemeral(true).queue()
+            event?.reply("diff\n- Du spielst in diesem Spiel nicht mit!")?.setEphemeral(true)?.queue()
             return
         }
         if (who.id != interactor.id) {
-            event.reply("```diff\n- Du bist nicht am Zug!```").setEphemeral(true).queue()
+            event?.reply("```diff\n- Du bist nicht am Zug!```")?.setEphemeral(true)?.queue()
             return
         }
 
@@ -179,7 +179,7 @@ class ChessGame(
         //(The Player isn't allowed to get him self into check)
         val isValid = ChessMoveLogic.checkMate(whoPlays, fields)
         if (isValid.first || isValid.second) {
-            event.reply("```diff\n- Dieser Zug ist nicht möglich!\n- Dein König stände dadurch im Schach(matt)```").setEphemeral(true).queue()
+            event?.reply("```diff\n- Dieser Zug ist nicht möglich!\n- Dein König stände dadurch im Schach(matt)```")?.setEphemeral(true)?.queue()
             return
         }
 
@@ -198,7 +198,7 @@ class ChessGame(
         val addon = if (prevFigure == FieldsChess.EMPTY) "" else " (${prevFigure.light} geschlagen)"
         val log = "${figure.light} $oldField -> $newField $addon"
         thread.sendMessage("${who.asMention} | $log").queue()
-        event.editMessage(log).setActionRows().queue()
+        event?.editMessage(log)?.setActionRows()?.queue()
 
         //Check if something win related happened
         checkWin()

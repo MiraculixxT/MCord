@@ -43,7 +43,7 @@ object GameManager {
         ).queue()
     }
 
-    fun newGame(game: Game, guild: Guild, members: List<String>, channelID: Long) {
+    fun newGame(game: Game, guild: Guild, members: List<String>, channelID: Long, botLevel: Int = 0) {
         if (guilds[guild.idLong] == null)
             guilds[guild.idLong] = mapOf(Game.TIC_TAC_TOE to hashMapOf(), Game.FOUR_WINS to hashMapOf(), Game.CHESS to hashMapOf())
         val uuid = UUID.randomUUID()
@@ -53,14 +53,16 @@ object GameManager {
                 guild.retrieveMemberById(members[1]).complete() ?: return,
                 uuid,
                 channelID,
-                guild
+                guild,
+                botLevel
             )
             Game.FOUR_WINS -> C4Game(
                 guild.retrieveMemberById(members[0]).complete() ?: return,
                 guild.retrieveMemberById(members[1]).complete() ?: return,
                 uuid,
                 guild,
-                channelID
+                channelID,
+                botLevel
             )
             Game.CHESS -> ChessGame(
                 guild.retrieveMemberById(members[0]).complete() ?: return,

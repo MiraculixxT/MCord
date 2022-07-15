@@ -29,7 +29,7 @@ class C4Game(
     private val uuid: UUID,
     guild: Guild,
     channelID: Long,
-    botLevel: Int = 0
+    botLevel: Int
 ) : SimpleGame {
 
     private lateinit var member1Emote: String
@@ -159,19 +159,19 @@ class C4Game(
         return false
     }
 
-    override suspend fun interact(options: List<String>, interactor: Member, event: GenericComponentInteractionCreateEvent) {
+    override suspend fun interact(options: List<String>, interactor: Member, event: GenericComponentInteractionCreateEvent?) {
         val column = options[0][0]
         val row = options[1][0]
         val memberID = interactor.idLong
         if (memberID != member1.idLong && memberID != member2.idLong) {
-            event.reply("```diff\n- Du bist kein Teil dieser Partie!\nStarte eine eigene über /4-wins <user>```").setEphemeral(true).queue()
+            event?.reply("```diff\n- Du bist kein Teil dieser Partie!\nStarte eine eigene über /4-wins <user>```")?.setEphemeral(true)?.queue()
             return
         }
         if ((whoPlays && memberID != member1.idLong) || (!whoPlays && memberID != member2.idLong)) {
-            event.reply("```diff\n- Du bist gerade nicht am Zug!```").setEphemeral(true).queue()
+            event?.reply("```diff\n- Du bist gerade nicht am Zug!```")?.setEphemeral(true)?.queue()
             return
         }
-        event.editMessage(message.contentRaw + " ").complete()
+        event?.editMessage(message.contentRaw + " ")?.complete()
         sendUpdate(row.digitToInt(), column.digitToInt(), interactor)
     }
 
