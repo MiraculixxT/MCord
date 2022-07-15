@@ -1,14 +1,14 @@
 package de.miraculixx.mcord.modules.utils.events
 
+import dev.minn.jda.ktx.events.listener
+import net.dv8tion.jda.api.JDA
 import net.dv8tion.jda.api.events.interaction.command.CommandAutoCompleteInteractionEvent
-import net.dv8tion.jda.api.hooks.ListenerAdapter
 
-class TabComplete : ListenerAdapter() {
-
-    override fun onCommandAutoCompleteInteraction(event: CommandAutoCompleteInteractionEvent) {
-        when (event.name) {
+class TabComplete {
+    fun startListen(jda: JDA) = jda.listener<CommandAutoCompleteInteractionEvent> {
+        when (it.name) {
             "admin" -> {
-                event.replyChoiceStrings("status", "delete-threads", "idle-game").queue()
+                it.replyChoiceStrings("status", "delete-threads", "idle-game").queue()
             }
         }
     }

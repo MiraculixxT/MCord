@@ -1,28 +1,22 @@
 package de.miraculixx.mcord.utils.manager
 
-import de.miraculixx.mcord.utils.entities.ButtonEvent
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
+import de.miraculixx.mcord.modules.suggest.ButtonNewSuggest
+import dev.minn.jda.ktx.events.listener
+import net.dv8tion.jda.api.JDA
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent
-import net.dv8tion.jda.api.hooks.ListenerAdapter
 
-class ButtonManager : ListenerAdapter() {
+object ButtonManager {
+    private val buttons = mapOf(
+        "SUGGEST" to ButtonNewSuggest()
+    )
 
-    private val buttons = HashMap<String, ButtonEvent>()
-
-    override fun onButtonInteraction(it: ButtonInteractionEvent) {
-        val id = it.button.id ?: return
+    fun startListen(jda: JDA) = jda.listener<ButtonInteractionEvent> {
+        val id = it.button.id ?: return@listener
         val commandClass = when {
+            id.startsWith("SUGGEST_") -> buttons["SUGGEST"]
 
-            else -> buttons[id] ?: return
+            else -> buttons[id]
         }
-        CoroutineScope(Dispatchers.Default).launch {
-            commandClass.trigger(it)
-        }
-    }
-
-    init {
-
+        commandClass?.trigger(it)
     }
 }

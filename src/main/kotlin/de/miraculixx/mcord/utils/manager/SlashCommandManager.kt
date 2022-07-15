@@ -1,39 +1,36 @@
 package de.miraculixx.mcord.utils.manager
 
-import de.miraculixx.mcord.Main
+import de.miraculixx.mcord.INSTANCE
 import de.miraculixx.mcord.modules.utils.commands.AdminCommand
-import de.miraculixx.mcord.utils.entities.LateInit
-import de.miraculixx.mcord.utils.entities.SlashCommandEvent
+import de.miraculixx.mcord.modules.utils.commands.LetMeGoogleCommand
+import de.miraculixx.mcord.modules.utils.commands.MessagesCommand
 import de.miraculixx.mcord.utils.guildMCreate
 import de.miraculixx.mcord.utils.guildMiraculixx
 import de.miraculixx.mcord.utils.log
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
+import dev.minn.jda.ktx.events.listener
+import dev.minn.jda.ktx.interactions.commands.Command
+import dev.minn.jda.ktx.interactions.commands.subcommand
+import net.dv8tion.jda.api.JDA
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent
-import net.dv8tion.jda.api.hooks.ListenerAdapter
 import net.dv8tion.jda.api.interactions.commands.OptionType
 import net.dv8tion.jda.api.interactions.commands.build.Commands
-import net.dv8tion.jda.api.interactions.commands.build.SubcommandData
 
-class SlashCommandManager : ListenerAdapter(), LateInit {
+object SlashCommandManager {
+    private val commands = mapOf(
+        "admin" to AdminCommand(),
+        "message" to MessagesCommand(),
+        "letmegoogle" to LetMeGoogleCommand()
+    )
 
-    private val commands = HashMap<String, SlashCommandEvent>()
-
-    override fun onSlashCommandInteraction(it: SlashCommandInteractionEvent) {
-        val commandClass = commands[it.name] ?: return
+    fun startListen(jda: JDA) = jda.listener<SlashCommandInteractionEvent> {
+        val commandClass = commands[it.name] ?: return@listener
         ">> ${it.user.asTag} -> /${it.name}".log()
-        CoroutineScope(Dispatchers.Default).launch {
-            commandClass.trigger(it)
-        }
+        commandClass.trigger(it)
     }
 
-    override fun setup() {
-        //Implement all Command Events
-        commands["admin"] = AdminCommand()
-
+    init {
         //Implement all Commands into Discord
-        val jda = Main.INSTANCE.jda!!
+        val jda = INSTANCE.jda
 
         guildMCreate.updateCommands()
             .addCommands(
@@ -47,31 +44,29 @@ class SlashCommandManager : ListenerAdapter(), LateInit {
                     .addOption(OptionType.STRING, "rank", "Which rank do you want to refresh? (Spamming this command leads into blacklist)", true, true),
                 Commands.slash("admin", "A Admin only command for testing")
                     .addOption(OptionType.STRING, "call", "Action to do", true, true)
-                    .addOption(OptionType.BOOLEAN, "status", "Switch Online Status of MUtils")
+                    .addOption(OptionType.BOOLEAN, "status", "Switch Online Status of MUtils"),
+                Command("message", "Utility command for messages") {
+                    subcommand("add-link", "Add a link button to a message") {
+                        addOption(OptionType.STRING, "msg-id", "Message ID", true)
+                        addOption(OptionType.STRING, "link", "URL", true)
+                        addOption(OptionType.STRING, "label", "Button Name", true)
+                        addOption(OptionType.STRING, "emote", "Button Emote", true)
+                    }
+                    subcommand("create-embed", "Create a new Embed")  {
+                        addOption(OptionType.STRING, "code", "JSON code (Empty = Dummy)")
+                        addOption(OptionType.STRING, "msg-id", "Message ID (Empty = New Message)")
+                    }
+                }
             ).queue()
         guildMiraculixx.updateCommands()
             .addCommands(
                 Commands.slash("admin", "A Admin only command for testing")
                     .addOption(OptionType.STRING, "call", "Action to do", true, true)
                     .addOption(OptionType.BOOLEAN, "status", "Switch Online Status of MUtils"),
-
-                Commands.slash("tictactoe", "Spiele Tic-Tac-Toe gegen einen anderen Nutzer")
-                    .addSubcommands(
-                        SubcommandData("user", "Spiele Tic-Tac-Toe gegen einen anderen Nutzer")
-                            .addOption(OptionType.USER, "request", "Sende eine Anfrage an einen genauen Nutzer")
-                    ),
-                Commands.slash("connect-4", "Spiele 4 Gewinnt gegen andere oder eine AI")
-                    .addSubcommands(
-                        SubcommandData("user", "Spiele 4 Gewinnt gegen einen anderen Nutzer")
-                            .addOption(OptionType.USER, "request", "Sende eine Anfrage an einen genauen Nutzer"),
-                        SubcommandData("bot", "Spiele alleine gegen die Bot AI"),
-                        SubcommandData("skin", "Wähle einen Skin für deinen Spielchip")
-                    ),
-                Commands.slash("chess", "Spiele Schach gegen einen anderen Nutzer")
-                    .addSubcommands(
-                        SubcommandData("user", "Spiele Schach gegen einen anderen Nutzer")
-                            .addOption(OptionType.USER, "request", "Sende eine Anfrage an einen genauen Nutzer")
-                    ),
+                Command("letmegoogle", "Create a let-me-google-that link for retarded people") {
+                    addOption(OptionType.STRING, "search", "What should we search for", true)
+                    addOption(OptionType.USER, "ping", "Who is the retarded person here?")
+                }
             ).queue()
         jda.updateCommands().queue()
     }

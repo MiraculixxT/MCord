@@ -1,6 +1,6 @@
 package de.miraculixx.mcord.utils
 
-import de.miraculixx.mcord.Main
+import de.miraculixx.mcord.INSTANCE
 
-val guildMiraculixx = Main.INSTANCE.jda?.getGuildById(707925156919771158)!!
-val guildMCreate = Main.INSTANCE.jda?.getGuildById(908621996009619477)!!
+val guildMiraculixx = INSTANCE.jda.getGuildById(707925156919771158)!!
+val guildMCreate = INSTANCE.jda.getGuildById(908621996009619477)!!

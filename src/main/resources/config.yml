@@ -4,5 +4,5 @@
 #                        lead to errors or shutdowns                         #
 #----------------------------------------------------------------------------#
 
-# Should the MUtils Stats Updater start on boot up?
-Updater: false
+Suggestion-Channel:
+  - 908621996009619477: "922851208295755808"
