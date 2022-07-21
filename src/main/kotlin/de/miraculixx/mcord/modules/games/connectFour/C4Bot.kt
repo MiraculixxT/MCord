@@ -3,7 +3,13 @@ package de.miraculixx.mcord.modules.games.connectFour
 import de.miraculixx.mcord.modules.games.utils.FieldsTwoPlayer
 import de.miraculixx.mcord.utils.api.callCustomAPI
 
-class C4Bot(private val level: Int) {
+// a = 2 | b = 1
+class C4Bot(val level: Int) {
+    private val depth = when (level) {
+        3 -> 5
+        2 -> 3
+        else -> 2
+    }
 
     // Returns Column
     suspend fun getNextMove(array: Array<Array<FieldsTwoPlayer>>): Int {
@@ -18,7 +24,7 @@ class C4Bot(private val level: Int) {
             }
         }
 
-        val url = "https://miraculixx.de/mcord/api/c4?board_data=$data&player=2"
+        val url = "https://miraculixx.de/mcord/api/c4?board_data=$data&player=2&depth=$depth"
         val response = callCustomAPI(url)
         return response.toIntOrNull() ?: 0
     }

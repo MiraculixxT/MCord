@@ -70,8 +70,8 @@ class TTTGame(
     private fun calcEmbed(): MessageEmbed {
         return Embed {
             title = "<:gamespot:988131155159183420> || TIC TAC TOE"
-            description = "<:xx:988156472020066324> - Spieler Rot ${member1.asMention}\n" +
-                    "<:oo:988156473274163200> - Spieler Grün " +
+            description = "<:xx:988156472020066324> - Player Red ${member1.asMention}\n" +
+                    "<:oo:988156473274163200> - Player Green " +
                     if (bot != null)
                         "`Bot Level ${bot.level}`"
                     else member2.asMention

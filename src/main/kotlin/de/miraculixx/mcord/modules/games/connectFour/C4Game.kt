@@ -4,10 +4,11 @@ package de.miraculixx.mcord.modules.games.connectFour
 
 import de.miraculixx.mcord.modules.games.GameManager
 import de.miraculixx.mcord.modules.games.utils.FieldsTwoPlayer
-import de.miraculixx.mcord.modules.games.utils.enums.Game
 import de.miraculixx.mcord.modules.games.utils.SimpleGame
+import de.miraculixx.mcord.modules.games.utils.enums.Game
 import de.miraculixx.mcord.utils.api.SQL
 import de.miraculixx.mcord.utils.log
+import dev.minn.jda.ktx.messages.Embed
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -49,45 +50,49 @@ class C4Game(
     }
 
     private fun calcEmbed(): MessageEmbed {
-        val builder = EmbedBuilder()
-            .setTitle("<:gamespot:988131155159183420> || 4 GEWINNT")
-            .setDescription(
-                "$member1Emote - Spieler 1 ${member1.asMention}\n" +
-                        "$member2Emote - Spieler 2 ${member2.asMention}"
-            )
-        if (winner == null) {
-            val mention = if (whoPlays) member1.asMention else member2.asMention
-            builder.addField(
-                "~~<                                                                            >~~",
-                "> $mention ist am Zug", false
-            ).setColor(0xb8800b)
-        } else {
-            val msg = when (winner!!) {
-                FieldsTwoPlayer.EMPTY -> "Unentschieden"
-                FieldsTwoPlayer.PLAYER_1 -> "${member1.asMention} hat gewonnen"
-                FieldsTwoPlayer.PLAYER_2 -> "${member2.asMention} hat gewonnen"
-            }
-            builder.addField(
-                "~~<                                                                            >~~",
-                "> $msg", false
-            ).setColor(0x2f3136)
-        }
 
-        //Game field
-        val stringBuilder = StringBuilder()
-        var rowI = 1
-        fields.forEach { row ->
-            stringBuilder.append("\n> **║** ")
-            row.forEach { stringBuilder.append(fieldToEmote(it)) }
-            stringBuilder.append(" **║**")
-            rowI++
+        return Embed {
+            title = "<:gamespot:988131155159183420> || CONNECT 4"
+            description = "$member1Emote - Player 1 ${member1.asMention}\n" +
+                    "$member2Emote - Player 2 " +
+                    if (bot != null)
+                        "`Bot Level ${bot!!.level}`"
+                    else member2.asMention
+            if (winner == null) {
+                val mention = if (whoPlays) member1.asMention else member2.asMention
+                field(
+                    "~~<                                                                            >~~",
+                    "> $mention ist am Zug", false
+                )
+                color = 0xb8800b
+            } else {
+                val msg = when (winner!!) {
+                    FieldsTwoPlayer.EMPTY -> "Unentschieden"
+                    FieldsTwoPlayer.PLAYER_1 -> "${member1.asMention} hat gewonnen"
+                    FieldsTwoPlayer.PLAYER_2 -> "${member2.asMention} hat gewonnen"
+                }
+                field(
+                    "~~<                                                                            >~~",
+                    "> \uD83C\uDFC1 $msg", false
+                )
+                color = 0x2f3136
+            }
+
+            //Game field
+            val stringBuilder = StringBuilder()
+            var rowI = 1
+            fields.forEach { row ->
+                stringBuilder.append("\n> **║** ")
+                row.forEach { stringBuilder.append(fieldToEmote(it)) }
+                stringBuilder.append(" **║**")
+                rowI++
+            }
+            stringBuilder.append("\n> **║** <:11:989885132418711564><:22:989886289803374714><:33:989886474679881749><:44:989886595970777148><:55:989886723792203828><:66:989886928197402635><:77:989887121449975818> **║**")
+            field(
+                "~~<                                                                            >~~",
+                stringBuilder.toString(), false
+            )
         }
-        stringBuilder.append("\n> **║** <:11:989885132418711564><:22:989886289803374714><:33:989886474679881749><:44:989886595970777148><:55:989886723792203828><:66:989886928197402635><:77:989887121449975818> **║**")
-        builder.addField(
-            "~~<                                                                            >~~",
-            stringBuilder.toString(), false
-        )
-        return builder.build()
     }
 
     private fun calcButtons(): List<ActionRow> {
