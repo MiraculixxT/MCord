@@ -2,11 +2,12 @@ package de.miraculixx.mcord.modules.games.tictactoe
 
 import de.miraculixx.mcord.modules.games.GameManager
 import de.miraculixx.mcord.modules.games.utils.FieldsTwoPlayer
-import de.miraculixx.mcord.modules.games.utils.enums.Game
 import de.miraculixx.mcord.modules.games.utils.SimpleGame
+import de.miraculixx.mcord.modules.games.utils.enums.Game
 import de.miraculixx.mcord.utils.api.SQL
 import de.miraculixx.mcord.utils.log
 import dev.minn.jda.ktx.events.getDefaultScope
+import dev.minn.jda.ktx.messages.Embed
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import net.dv8tion.jda.api.EmbedBuilder
@@ -67,37 +68,41 @@ class TTTGame(
     }
 
     private fun calcEmbed(): MessageEmbed {
-        val builder = EmbedBuilder()
-            .setTitle("<:gamespot:988131155159183420> || TIC TAC TOE")
-            .setDescription(
-                "<:xx:988156472020066324> - Spieler Rot ${member1.asMention}\n" +
-                        "<:oo:988156473274163200> - Spieler Grün ${member2.asMention}"
-            )
-        if (winner != null) {
-            val message = when (winner!!) {
-                FieldsTwoPlayer.EMPTY -> "Unentschieden"
-                FieldsTwoPlayer.PLAYER_1 -> "${member1.asMention} hat gewonnen!"
-                FieldsTwoPlayer.PLAYER_2 -> "${member2.asMention} hat gewonnen!"
+        return Embed {
+            title = "<:gamespot:988131155159183420> || TIC TAC TOE"
+            description = "<:xx:988156472020066324> - Spieler Rot ${member1.asMention}\n" +
+                    "<:oo:988156473274163200> - Spieler Grün " +
+                    if (bot != null)
+                        "`Bot Level ${bot.level}`"
+                    else member2.asMention
+            if (winner != null) {
+                val message = when (winner!!) {
+                    FieldsTwoPlayer.EMPTY -> "Unentschieden"
+                    FieldsTwoPlayer.PLAYER_1 -> "${member1.asMention} hat gewonnen!"
+                    FieldsTwoPlayer.PLAYER_2 -> "${member2.asMention} hat gewonnen!"
+                }
+                field {
+                    name = "~~<                                                                            >~~"
+                    value = "> \uD83C\uDFC1 $message"
+                    inline = false
+                }
+                color = 0x2f3136
+            } else if (whoPlays) {
+                field {
+                    name = "~~<                                                                            >~~"
+                    value = "> ${member1.asMention} ist am Zug"
+                    inline = false
+                }
+                color = 0xff0000
+            } else {
+                field {
+                    name = "~~<                                                                            >~~"
+                    value = "> ${member2.asMention} ist am Zug"
+                    inline = false
+                }
+                color = 0x1fff00
             }
-            builder.addField(
-                "~~<                                                                            >~~",
-                "> \uD83C\uDFC1 $message", false
-            )
-                .setColor(0x2f3136)
-        } else if (whoPlays) {
-            builder.addField(
-                "~~<                                                                            >~~",
-                "> ${member1.asMention} ist am Zug", false
-            )
-                .setColor(0xff0000)
-        } else {
-            builder.addField(
-                "~~<                                                                            >~~",
-                "> ${member2.asMention} ist am Zug", false
-            )
-                .setColor(0x1fff00)
         }
-        return builder.build()
     }
 
     private suspend fun checkWin() {
