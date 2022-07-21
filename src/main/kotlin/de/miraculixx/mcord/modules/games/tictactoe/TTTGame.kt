@@ -2,11 +2,13 @@ package de.miraculixx.mcord.modules.games.tictactoe
 
 import de.miraculixx.mcord.modules.games.GameManager
 import de.miraculixx.mcord.modules.games.utils.FieldsTwoPlayer
-import de.miraculixx.mcord.modules.games.utils.Game
+import de.miraculixx.mcord.modules.games.utils.enums.Game
 import de.miraculixx.mcord.modules.games.utils.SimpleGame
 import de.miraculixx.mcord.utils.api.SQL
 import de.miraculixx.mcord.utils.log
+import dev.minn.jda.ktx.events.getDefaultScope
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import net.dv8tion.jda.api.EmbedBuilder
 import net.dv8tion.jda.api.entities.*
 import net.dv8tion.jda.api.entities.emoji.Emoji
@@ -31,9 +33,9 @@ class TTTGame(
     private var guildID: Long
     private var whoPlays = Random.nextBoolean()
     private var winner: FieldsTwoPlayer? = null
-    private val message: Message
-    private val threadMessage: Message
-    private val thread: ThreadChannel
+    private lateinit var message: Message
+    private lateinit var threadMessage: Message
+    private lateinit var thread: ThreadChannel
     private val fields = Array(3) {
         (1..3).map { FieldsTwoPlayer.EMPTY }.toTypedArray()
     }
@@ -108,16 +110,17 @@ class TTTGame(
                     FieldsTwoPlayer.PLAYER_1 -> "<:xx:988156472020066324> ${member1.asMention} hat gewonnen!"
                     FieldsTwoPlayer.PLAYER_2 -> "<:oo:988156473274163200> ${member2.asMention} hat gewonnen!"
                 }
-        thread.sendMessage(msg)
+        if (bot != null) thread.sendMessage(msg)
+            .setEmbeds(EmbedBuilder().setDescription("Der Spiel-Bereich löscht sich in **30s**").build()).queue()
+        else thread.sendMessage(msg)
             .setEmbeds(EmbedBuilder().setDescription("Der Spiel-Bereich löscht sich in **30s**").build())
             .setActionRow(replayButton).queue()
+
         GameManager.removeGame(guildID, Game.TIC_TAC_TOE, uuid)
 
-        //val ex = if (bot == null) "" else "_Bot"
-        if (winner == FieldsTwoPlayer.PLAYER_1)
-            SQL.addWin(member1.idLong, guildID, "TTT")
-        else if (winner == FieldsTwoPlayer.PLAYER_2)
-            SQL.addWin(member2.idLong, guildID, "TTT")
+        val ex = if (bot == null) "" else "_Bot"
+        val winID = if (winner == FieldsTwoPlayer.PLAYER_1) member1.idLong else member2.idLong
+        SQL.addWin(winID, guildID, "TTT$ex")
     }
 
     private fun getWinner(): FieldsTwoPlayer? {
@@ -194,7 +197,7 @@ class TTTGame(
         if (winner != null) {
             delay(30.seconds)
             thread.delete().queue()
-        } else if (bot != null) botMove()
+        } else if (bot != null && !whoPlays) botMove()
     }
 
     private suspend fun botMove() {
@@ -211,20 +214,24 @@ class TTTGame(
     }
 
     init {
-        if (member2.user.isBot) {
+        bot = if (member2.user.isBot) {
             "GAME > Start TTT Bot Game".log()
-            bot = TTTBot(botLevel, FieldsTwoPlayer.PLAYER_2)
-        } else bot = null
+            TTTBot(botLevel, FieldsTwoPlayer.PLAYER_2)
+        } else null
         guildID = guild.idLong
 
-        val channel = guild.getTextChannelById(channelID)!!
-        message = channel.sendMessageEmbeds(calcEmbed())
-            .setActionRows(calcButtons()).complete()
-        thread = message.createThreadChannel("TTT - ${member1.user.name} vs ${member2.user.name}").complete()
-        threadMessage = thread.sendMessage(" \u1CBC ").setActionRows(calcButtons()).complete()
-        thread.addThreadMember(member1).complete()
-        thread.addThreadMember(member2).complete()
-        val mention = if (whoPlays) member1.asMention else member2.asMention
-        thread.sendMessage("$mention du bist am Zug!").queue()
+        getDefaultScope().launch {
+            val channel = guild.getTextChannelById(channelID)!!
+            message = channel.sendMessageEmbeds(calcEmbed())
+                .setActionRows(calcButtons()).complete()
+            thread = message.createThreadChannel("TTT - ${member1.user.name} vs ${member2.user.name}").complete()
+            threadMessage = thread.sendMessage(" \u1CBC ").setActionRows(calcButtons()).complete()
+            thread.addThreadMember(member1).complete()
+            thread.addThreadMember(member2).complete()
+            val mention = if (whoPlays) member1.asMention else member2.asMention
+            thread.sendMessage("$mention du bist am Zug!").queue()
+            if (bot != null && !whoPlays)
+                botMove()
+        }
     }
 }

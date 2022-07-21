@@ -1,7 +1,7 @@
 package de.miraculixx.mcord.modules.games.tictactoe
 
 import de.miraculixx.mcord.modules.games.utils.GameTools
-import de.miraculixx.mcord.modules.games.utils.Game
+import de.miraculixx.mcord.modules.games.utils.enums.Game
 import de.miraculixx.mcord.utils.entities.SlashCommandEvent
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent
 

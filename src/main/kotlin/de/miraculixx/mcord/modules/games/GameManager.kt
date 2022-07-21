@@ -4,7 +4,7 @@ import de.miraculixx.mcord.modules.games.chess.ChessGame
 import de.miraculixx.mcord.modules.games.connectFour.C4Game
 import de.miraculixx.mcord.modules.games.tictactoe.TTTGame
 import de.miraculixx.mcord.modules.games.utils.FieldsTwoPlayer
-import de.miraculixx.mcord.modules.games.utils.Game
+import de.miraculixx.mcord.modules.games.utils.enums.Game
 import de.miraculixx.mcord.modules.games.utils.SimpleGame
 import de.miraculixx.mcord.utils.Color
 import de.miraculixx.mcord.utils.log

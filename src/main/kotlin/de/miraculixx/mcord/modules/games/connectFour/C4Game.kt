@@ -4,7 +4,7 @@ package de.miraculixx.mcord.modules.games.connectFour
 
 import de.miraculixx.mcord.modules.games.GameManager
 import de.miraculixx.mcord.modules.games.utils.FieldsTwoPlayer
-import de.miraculixx.mcord.modules.games.utils.Game
+import de.miraculixx.mcord.modules.games.utils.enums.Game
 import de.miraculixx.mcord.modules.games.utils.SimpleGame
 import de.miraculixx.mcord.utils.api.SQL
 import de.miraculixx.mcord.utils.log
@@ -219,7 +219,10 @@ class C4Game(
                         FieldsTwoPlayer.PLAYER_1 -> "$member1Emote ${member1.asMention} hat gewonnen!"
                         FieldsTwoPlayer.PLAYER_2 -> "$member2Emote ${member2.asMention} hat gewonnen!"
                     }
-            thread.sendMessage(msg)
+            if (bot != null)
+                thread.sendMessage(msg)
+                    .setEmbeds(EmbedBuilder().setDescription("Der Spiel-Bereich löscht sich in **30s**").build()).queue()
+            else thread.sendMessage(msg)
                 .setEmbeds(EmbedBuilder().setDescription("Der Spiel-Bereich löscht sich in **30s**").build())
                 .setActionRow(replayButton).queue()
             GameManager.removeGame(guildID, Game.FOUR_WINS, uuid)

@@ -1,7 +1,7 @@
 package de.miraculixx.mcord.modules.games.chess
 
 import de.miraculixx.mcord.modules.games.GameManager
-import de.miraculixx.mcord.modules.games.utils.Game
+import de.miraculixx.mcord.modules.games.utils.enums.Game
 import de.miraculixx.mcord.utils.entities.DropDownEvent
 import net.dv8tion.jda.api.events.interaction.component.SelectMenuInteractionEvent
 import java.util.*

@@ -75,27 +75,19 @@ object SQL {
             userSnowflake,
             result.getInt("Coins"),
             if (emotes) {
-                "1".log(Color.RED)
                 val allEmotes = call("SELECT Emote_Type, Emote FROM userEmotes, userData WHERE Guild_ID=$guildSnowflake && Discord_ID=$userSnowflake && userEmotes.ID=userData.ID")
                 val activeEmotes = call("SELECT * FROM userEmotesActive, userData WHERE Guild_ID=$guildSnowflake && Discord_ID=$userSnowflake && userEmotesActive.ID=userData.ID")
-                "2".log(Color.RED)
                 activeEmotes.next()
                 val emoteMap = buildMap {
                     while (allEmotes.next()) {
-                        "Repeat".log(Color.GREEN)
                         try {
                             put(allEmotes.getString("Emote_Type"),
                                 allEmotes.getString("Emote"))
                         } catch (e: Exception) {
-                            "STOP".log(Color.RED)
                             put("1","2")
                         }
-                        "Repeat2".log(Color.GREEN)
                     }
-                    "Repeat finish".log(Color.RED)
                 }
-                emoteMap.toString().log(Color.RED)
-                "3".log(Color.RED)
                 UserEmote(
                     emoteMap,
                     activeEmotes.getString("C4_P"),

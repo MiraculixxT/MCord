@@ -1,4 +1,4 @@
-package de.miraculixx.mcord.modules.system
+package de.miraculixx.mcord.modules.utils.commands
 
 import de.miraculixx.mcord.modules.games.UpdaterGame
 import de.miraculixx.mcord.utils.api.SQL
@@ -24,16 +24,6 @@ class SetupCommand : SlashCommandEvent {
             val hook = it.hook
 
             CoroutineScope(Dispatchers.Default).launch {
-                val botPerms = listOf(
-                    Permission.VIEW_CHANNEL,
-                    Permission.MESSAGE_SEND,
-                    Permission.MESSAGE_SEND_IN_THREADS,
-                    Permission.MANAGE_CHANNEL,
-                    Permission.MANAGE_THREADS,
-                    Permission.MANAGE_WEBHOOKS,
-                    Permission.CREATE_PRIVATE_THREADS,
-                    Permission.CREATE_PUBLIC_THREADS
-                )
                 if (it.getOption("stats-channel") != null) {
                     val g = SQL.getGuild(guild.idLong)
                     if (g.premium) {

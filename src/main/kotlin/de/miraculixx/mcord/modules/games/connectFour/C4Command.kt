@@ -3,13 +3,11 @@ package de.miraculixx.mcord.modules.games.connectFour
 import de.miraculixx.mcord.config.Config
 import de.miraculixx.mcord.config.ConfigManager
 import de.miraculixx.mcord.config.Configs
-import de.miraculixx.mcord.modules.games.utils.Game
+import de.miraculixx.mcord.modules.games.utils.enums.Game
 import de.miraculixx.mcord.modules.games.utils.GameTools
-import de.miraculixx.mcord.modules.games.utils.SkinType
-import de.miraculixx.mcord.utils.Color
+import de.miraculixx.mcord.modules.games.utils.enums.SkinType
 import de.miraculixx.mcord.utils.api.SQL
 import de.miraculixx.mcord.utils.entities.SlashCommandEvent
-import de.miraculixx.mcord.utils.log
 import dev.minn.jda.ktx.interactions.components.SelectMenu
 import dev.minn.jda.ktx.messages.Embed
 import net.dv8tion.jda.api.entities.emoji.Emoji
@@ -30,7 +28,6 @@ class C4Command : SlashCommandEvent {
 
             //Building default skin dropdowns
             val conf = ConfigManager.getConfig(Configs.GAME_SETTINGS)
-            "10".log(Color.GREEN)
             val primary = SelectMenu("GAME_C4_SKIN_1") {
                 placeholder = "Primary Chip Skin"
                 minValues = 1
@@ -38,7 +35,6 @@ class C4Command : SlashCommandEvent {
                 addOptions(addEmote("\uD83D\uDFE1", SkinType.FREE))
                 addOptions(addEmotes(conf, primaryEmotes, userEmotes.c4))
             }
-            "11".log(Color.GREEN)
             val secondary = SelectMenu("GAME_C4_SKIN_2") {
                 placeholder = "Secondary Chip Skin"
                 minValues = 1
@@ -46,7 +42,6 @@ class C4Command : SlashCommandEvent {
                 addOptions(addEmote("\uD83D\uDD34", SkinType.FREE))
                 addOptions(addEmotes(conf, secEmotes, userEmotes.c42))
             }
-            "12".log(Color.GREEN)
 
             //Building Message
             it.replyEmbeds(

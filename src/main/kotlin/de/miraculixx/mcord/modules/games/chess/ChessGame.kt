@@ -2,6 +2,7 @@ package de.miraculixx.mcord.modules.games.chess
 
 import de.miraculixx.mcord.modules.games.utils.FieldsTwoPlayer
 import de.miraculixx.mcord.modules.games.utils.SimpleGame
+import de.miraculixx.mcord.utils.api.SQL
 import net.dv8tion.jda.api.EmbedBuilder
 import net.dv8tion.jda.api.entities.*
 import net.dv8tion.jda.api.entities.emoji.Emoji
@@ -19,6 +20,8 @@ class ChessGame(
 
     private val player1 = if (Random.nextBoolean()) member1 else member2
     private val player2 = if (member1 == player1) member2 else member1
+    private val guildID: Long
+
     // Who is playing the next step
     // True - P1 (white) || False - P2 (black)
     private var whoPlays = true
@@ -26,7 +29,7 @@ class ChessGame(
     private val message: Message
     private val threadMessage: Message
     private val thread: ThreadChannel
-    private val fields = arrayOf( // row - column
+    private val board = arrayOf( // row - column
         arrayOf(
             FieldsChess.ROOK_BLACK,
             FieldsChess.KNIGHT_BLACK,
@@ -105,7 +108,7 @@ class ChessGame(
             repeat(8) { row ->
                 append("> ${numberEmotes[row]} ")
                 repeat(8) { column ->
-                    val f = fields[row][column]
+                    val f = board[row][column]
                     append(
                         if (((row + column) % 2) == 0) f.light else f.dark
                     )
@@ -125,7 +128,7 @@ class ChessGame(
      */
     fun interactTo(position: Pair<Int, Char>, hook: InteractionHook) {
         val newPos = 7 - position.first to columnChars.lastIndexOf(position.second)
-        val field = fields[newPos.first][newPos.second]
+        val field = board[newPos.first][newPos.second]
         println("$newPos - ${field.name}")
         if (field == FieldsChess.EMPTY || field.white != whoPlays) {
             val color = if (whoPlays) "weißen" else "schwarzen"
@@ -134,12 +137,12 @@ class ChessGame(
         }
 
         val list = when (field) {
-            FieldsChess.PAWN_WHITE, FieldsChess.PAWN_BLACK -> ChessMoveLogic.movePawn(whoPlays, newPos, fields)
-            FieldsChess.KNIGHT_WHITE, FieldsChess.KNIGHT_BLACK -> ChessMoveLogic.moveKnight(whoPlays, newPos, fields)
-            FieldsChess.BISHOP_WHITE, FieldsChess.BISHOP_BLACK -> ChessMoveLogic.moveBishop(whoPlays, newPos, fields)
-            FieldsChess.ROOK_WHITE, FieldsChess.ROOK_BLACK -> ChessMoveLogic.moveRook(whoPlays, newPos, fields)
-            FieldsChess.QUEEN_WHITE, FieldsChess.QUEEN_BLACK -> ChessMoveLogic.moveQueen(whoPlays, newPos, fields)
-            FieldsChess.KING_WHITE, FieldsChess.KING_BLACK -> ChessMoveLogic.moveKing(whoPlays, newPos, fields, true)
+            FieldsChess.PAWN_WHITE, FieldsChess.PAWN_BLACK -> ChessMoveLogic.movePawn(whoPlays, newPos, board, false)
+            FieldsChess.KNIGHT_WHITE, FieldsChess.KNIGHT_BLACK -> ChessMoveLogic.moveKnight(whoPlays, newPos, board)
+            FieldsChess.BISHOP_WHITE, FieldsChess.BISHOP_BLACK -> ChessMoveLogic.moveBishop(whoPlays, newPos, board)
+            FieldsChess.ROOK_WHITE, FieldsChess.ROOK_BLACK -> ChessMoveLogic.moveRook(whoPlays, newPos, board)
+            FieldsChess.QUEEN_WHITE, FieldsChess.QUEEN_BLACK -> ChessMoveLogic.moveQueen(whoPlays, newPos, board)
+            FieldsChess.KING_WHITE, FieldsChess.KING_BLACK -> ChessMoveLogic.moveKing(whoPlays, newPos, board, true)
             else -> return
         }
         val msg = "Wähle ein Feld aus, auf welches du deine Figur setzen möchtest!"
@@ -175,21 +178,23 @@ class ChessGame(
             return
         }
 
+        //Calculate Move
+        val from = options[0].toInt() to options[1].toInt()
+        val to = options[2].toInt() to options[3].toInt()
+        val prevFigure = board[to.first][to.second]
+        val figure = board[from.first][from.second]
+
         //Check if Move is valid
-        //(The Player isn't allowed to get him self into check)
-        val isValid = ChessMoveLogic.checkMate(whoPlays, fields)
+        //(The Player isn't allowed to get him self into check/danger)
+        val newBoard = calcMove(from, to, false)
+        val isValid = ChessMoveLogic.checkMate(whoPlays, newBoard)
         if (isValid.first || isValid.second) {
             event?.reply("```diff\n- Dieser Zug ist nicht möglich!\n- Dein König stände dadurch im Schach(matt)```")?.setEphemeral(true)?.queue()
             return
         }
 
-        //Calculate Move
-        val from = options[0].toInt() to options[1].toInt()
-        val to = options[2].toInt() to options[3].toInt()
-        val figure = fields[from.first][from.second]
-        val prevFigure = fields[to.first][to.second]
-        fields[to.first][to.second] = figure
-        fields[from.first][from.second] = FieldsChess.EMPTY
+        //Apply move to board
+        calcMove(from, to, true)
 
         //Announce Move
         whoPlays = !whoPlays
@@ -214,30 +219,55 @@ class ChessGame(
         }
     }
 
+    private fun calcMove(from: Pair<Int, Int>, to: Pair<Int, Int>, sync: Boolean): Array<Array<FieldsChess>> {
+        val figure = board[from.first][from.second]
+        return if (sync) {
+            board[to.first][to.second] = figure
+            board[from.first][from.second] = FieldsChess.EMPTY
+            board
+        } else {
+            val dummyBoard = buildList {
+                board.forEach { row ->
+                    add(buildList {
+                        row.forEach { field ->
+                            add(field)
+                        }
+                    }.toTypedArray())
+                }
+            }.toTypedArray()
+            dummyBoard[to.first][to.second] = figure
+            dummyBoard[from.first][from.second] = FieldsChess.EMPTY
+            dummyBoard
+        }
+    }
+
     override fun setWinner(win: FieldsTwoPlayer) {
         winner = win
         message.editMessageEmbeds(calcEmbed()).setActionRows().queue()
         thread.delete().queue()
     }
 
-    private fun checkWin() {
-        val white = ChessMoveLogic.checkMate(true, fields)
-        val black = ChessMoveLogic.checkMate(false, fields)
+    private suspend fun checkWin() {
+        val white = ChessMoveLogic.checkMate(true, board)
+        val black = ChessMoveLogic.checkMate(false, board)
         if (white.second) {
             winner = FieldsTwoPlayer.PLAYER_2
+            SQL.addWin(player2.idLong, guildID, "Chess")
             return
         } else if (black.second) {
             winner = FieldsTwoPlayer.PLAYER_1
+            SQL.addWin(player1.idLong, guildID, "Chess")
             return
         }
-        val warning = if (white.first) "❗ ${player1.asMention} ${FieldsChess.KING_WHITE.light} **steht im Schach** ❗"
-        else if (black.first) "❗ ${player2.asMention} ${FieldsChess.KING_BLACK} **steht im Schach** ❗" else ""
-        if (warning.length > 2)
+        val warning = if (white.first) "❗ ${player1.asMention} ${FieldsChess.KING_WHITE} **steht im Schach** ❗"
+        else if (black.first) "❗ ${player2.asMention} ${FieldsChess.KING_BLACK} **steht im Schach** ❗" else null
+        if (warning != null)
             thread.sendMessage(warning).queue()
     }
 
     init {
         //Game Start
+        guildID = guild.idLong
 
         val channel = guild.getTextChannelById(channelID)!!
         val selector = calcButtons()

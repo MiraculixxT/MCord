@@ -1,6 +1,7 @@
 package de.miraculixx.mcord.modules.games.utils
 
 import de.miraculixx.mcord.modules.games.GameManager
+import de.miraculixx.mcord.modules.games.utils.enums.Game
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent
 import java.util.*

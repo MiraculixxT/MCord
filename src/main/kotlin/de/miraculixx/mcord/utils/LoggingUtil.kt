@@ -22,12 +22,14 @@ fun InsufficientPermissionException.notify(hook: InteractionHook) {
 private fun printToConsole(input: String, color: String) {
     val date = LocalDate.now()
     val time = LocalTime.now()
-    println("$color[$date ${prettyNumber(time.hour)}:${prettyNumber(time.minute)}:${prettyNumber(time.second)}] $input")
+    println("$color[$date ${prettyNumber(time.hour)}:${prettyNumber(time.minute)}:${prettyNumber(time.second)}] $input\u001B[0m")
 }
+
 private fun prettyNumber(int: Int): String {
     return if (int <= 9) "0$int" else int.toString()
 }
 
+@Suppress("unused")
 enum class Color(val code: Byte) {
     RED(31),
     GREEN(32),

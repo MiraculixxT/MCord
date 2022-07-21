@@ -10,7 +10,7 @@ object ChessMoveLogic {
     /*
     Move Logic - Generell
      */
-    fun movePawn(white: Boolean, postion: Pair<Int, Int>, fields: Array<Array<FieldsChess>>): List<Pair<Int, Int>> {
+    fun movePawn(white: Boolean, postion: Pair<Int, Int>, fields: Array<Array<FieldsChess>>, predictMove: Boolean): List<Pair<Int, Int>> {
         return buildList {
             val (row, column) = postion
             val sourcePostion = (!white && row == 1) || (white && row == 6)
@@ -28,10 +28,10 @@ object ChessMoveLogic {
 
 
             val left = row + direction to column + 1
-            if (left.validPosition() && left.getField(fields) != FieldsChess.EMPTY && left.getField(fields).white != white)
+            if (predictMove || (left.validPosition() && left.getField(fields) != FieldsChess.EMPTY && left.getField(fields).white != white))
                 add(left)
             val right = row + direction to column - 1
-            if (right.validPosition() && right.getField(fields) != FieldsChess.EMPTY && right.getField(fields).white != white)
+            if (predictMove || (right.validPosition() && right.getField(fields) != FieldsChess.EMPTY && right.getField(fields).white != white))
                 add(right)
         }
     }
@@ -92,10 +92,10 @@ object ChessMoveLogic {
         }
     }
 
-    /*
-    Check, if the King is in checkmate.
-    State White - State Black
-    State -> Danger - Checkmate
+    /**
+     * - Check, if the King is in checkmate.
+     * - State White - State Black
+     * - State -> Danger - Checkmate
      */
     fun checkMate(white: Boolean, fields: Array<Array<FieldsChess>>): Pair<Boolean, Boolean> {
         var player = false to false
@@ -107,17 +107,15 @@ object ChessMoveLogic {
                 val pos = x to y
                 if (field == FieldsChess.KING_WHITE || field == FieldsChess.KING_BLACK) {
                     if (white == field.white) {
-                        println("\n\n\n\n\n> Is ${field.white} King")
-                        val opponentMoves = getAllMoves(!field.white, fields, false)
+                        // Get all opponent moves to check if our king is in danger
+                        val opponentMoves = getAllMoves(!white, fields, false)
 
                         // Check if King is in danger
+                        // pos - Kings Position
                         if (opponentMoves.contains(pos)) {
-                            println("> King is in Danger!!!")
-                            val kingMoves = moveKing(field.white, pos, fields, false)
+                            val kingMoves = moveKing(white, pos, fields, false)
                             player = true to kingMoves.isEmpty()
                         }
-                        println("> King Pos - $pos")
-                        println(opponentMoves)
                     }
                 }
                 y++
@@ -172,13 +170,14 @@ object ChessMoveLogic {
                 row.forEach { field ->
                     if (field != FieldsChess.EMPTY) {
                         if (field.white == white) {
-                            val p = Pair(rowCounter, columnCounter)
+                            val p = rowCounter to columnCounter
                             val moves = when (field) {
-                                FieldsChess.PAWN_WHITE, FieldsChess.PAWN_BLACK -> movePawn(white, p, fields)
+                                FieldsChess.PAWN_WHITE, FieldsChess.PAWN_BLACK -> movePawn(white, p, fields, true)
                                 FieldsChess.KNIGHT_WHITE, FieldsChess.KNIGHT_BLACK -> moveKnight(white, p, fields)
                                 FieldsChess.BISHOP_WHITE, FieldsChess.BISHOP_BLACK -> moveBishop(white, p, fields)
                                 FieldsChess.ROOK_WHITE, FieldsChess.ROOK_BLACK -> moveRook(white, p, fields)
-                                FieldsChess.QUEEN_WHITE, FieldsChess.QUEEN_BLACK -> if (checkKing) moveKing(white, p, fields, false)
+                                FieldsChess.QUEEN_WHITE, FieldsChess.QUEEN_BLACK -> moveQueen(white, p, fields)
+                                FieldsChess.KING_BLACK, FieldsChess.KING_WHITE -> if (checkKing) moveKing(white, p, fields, false)
                                 else emptyList()
                                 else -> emptyList()
                             }

@@ -4,8 +4,9 @@ import de.miraculixx.mcord.Main
 import de.miraculixx.mcord.modules.games.chess.ChessCommand
 import de.miraculixx.mcord.modules.games.connectFour.C4Command
 import de.miraculixx.mcord.modules.games.tictactoe.TTTCommand
-import de.miraculixx.mcord.modules.system.AdminCommand
-import de.miraculixx.mcord.modules.system.SetupCommand
+import de.miraculixx.mcord.modules.utils.commands.AdminCommand
+import de.miraculixx.mcord.modules.utils.commands.CoinsCommand
+import de.miraculixx.mcord.modules.utils.commands.SetupCommand
 import de.miraculixx.mcord.utils.log
 import dev.minn.jda.ktx.events.listener
 import dev.minn.jda.ktx.interactions.commands.Command
@@ -21,12 +22,13 @@ object SlashCommandManager {
         "connect-4" to C4Command(),
         "chess" to ChessCommand(),
         "setup" to SetupCommand(),
-        "admin" to AdminCommand()
+        "admin" to AdminCommand(),
+        "coins" to CoinsCommand()
     )
 
     fun startListen(jda: JDA) = jda.listener<SlashCommandInteractionEvent> {
         val commandClass = commands[it.name] ?: return@listener
-        ">> ${it.user.asTag} -> /${it.name} ${it.subcommandName}".log()
+        ">> ${it.user.asTag} -> /${it.name} ${it.subcommandName ?: ""}".log()
         commandClass.trigger(it)
     }
 

@@ -1,4 +1,4 @@
-package de.miraculixx.mcord.modules.system
+package de.miraculixx.mcord.modules.utils.commands
 
 import de.miraculixx.mcord.modules.games.UpdaterGame
 import de.miraculixx.mcord.utils.api.SQL

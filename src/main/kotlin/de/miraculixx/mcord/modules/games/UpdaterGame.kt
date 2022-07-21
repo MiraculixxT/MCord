@@ -2,10 +2,10 @@
 
 package de.miraculixx.mcord.modules.games
 
-import de.miraculixx.mcord.config.ConfigManager
-import de.miraculixx.mcord.config.Configs
+import de.miraculixx.mcord.modules.games.utils.enums.DailyChallenge
 import de.miraculixx.mcord.utils.Color
 import de.miraculixx.mcord.utils.api.SQL
+import de.miraculixx.mcord.utils.dailyChallenges
 import de.miraculixx.mcord.utils.log
 import dev.minn.jda.ktx.messages.Embed
 import dev.minn.jda.ktx.messages.edit
@@ -33,6 +33,14 @@ object UpdaterGame {
         return CoroutineScope(Dispatchers.Default).launch {
             delay(10.seconds) // Let the system slowly starts
             launch {
+                val result = SQL.call("SELECT * FROM globalDaily")
+                result.next()
+                dailyChallenges = buildList {
+                    (1..3).forEach {
+                        add(DailyChallenge.valueOf(result.getString("Task_$it")))
+                    }
+                    add(DailyChallenge.valueOf(result.getString("Task_Bonus")))
+                }
                 while (true) {
                     val current = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault())
                     if (current.hour == 1) {
@@ -45,7 +53,7 @@ object UpdaterGame {
             }
             launch {
                 while (true) {
-                    updateLeaderboard()
+                    updateLeaderboards()
                     delay(1.hours)
                 }
             }
@@ -54,38 +62,35 @@ object UpdaterGame {
 
     suspend fun updateDailyChallenges() {
         "---=---> DAILY UPDATE <---=---".log(Color.YELLOW)
-        val conf = ConfigManager.getConfig(Configs.GAME_SETTINGS)
-        val list = conf.getObjectList<Int>("Daily-Challenges")
-        val bonus = conf.getObjectList<Int>("Daily-Bonus-Challenges")
+        val list = DailyChallenge.values().filter { !it.bonus }
+        val bonus = DailyChallenge.values().filter { it.bonus }
 
-        val new = buildList {
+        val dailyChallenges = buildList {
             repeat(3) {
-                add(list.keys.random())
+                add(list.random())
             }
-            add(bonus.keys.random())
+            add(bonus.random())
         }
 
-        SQL.updateDailyChallenges(new)
-        new.toString().log(Color.YELLOW)
+        SQL.updateDailyChallenges(dailyChallenges.map { it.name })
     }
 
-    private suspend fun updateLeaderboard() {
+    private suspend fun updateLeaderboards() = runBlocking {
         "---=---> STATS UPDATE <---=---".log(Color.YELLOW)
         val call = SQL.call("SELECT Stats_Channel, Discord_ID FROM guildData WHERE Premium=1 && Stats_Channel!=0")
 
         var counter = 0
-        CoroutineScope(Dispatchers.Default).launch {
-            while (call.next()) {
-                counter++
-                val guildID = call.getLong("Discord_ID")
-                val statsChannelID = call.getLong("Stats_Channel")
-                launch {
-                    val guild = JDA!!.getGuildById(guildID) ?: return@launch
-                    val channel = guild.getTextChannelById(statsChannelID)
-                    updateLeaderboardGuild(guild, channel)
-                }
+        while (call.next()) {
+            counter++
+            val guildID = call.getLong("Discord_ID")
+            val statsChannelID = call.getLong("Stats_Channel")
+            launch {
+                val guild = JDA!!.getGuildById(guildID) ?: return@launch
+                val channel = guild.getTextChannelById(statsChannelID)
+                updateLeaderboardGuild(guild, channel)
             }
         }
+
         "Finished checking $counter Guilds".log(Color.YELLOW)
         "---=---=---=---=---=---=---=---".log(Color.YELLOW)
     }
@@ -153,8 +158,7 @@ object UpdaterGame {
                 if (response.next()) {
                     val addon = if (key2 != null) " | ${response.getString(key2)}" else ""
                     append("$m<@${response.getString("Discord_ID")}> - ${response.getString(key)}$addon\n")
-                }
-                else append("$m*Empty*\n")
+                } else append("$m*Empty*\n")
             }
         }
     }
