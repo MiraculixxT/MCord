@@ -6,10 +6,9 @@ import de.miraculixx.mcord.utils.log
 import org.yaml.snakeyaml.Yaml
 import java.io.File
 
-class Config(path: String) {
+class Config(path: String, private val name: String) {
     private val yaml: Yaml = Yaml()
     private val configMap: Map<String, Any>
-    private val name: String
 
 
     fun getString(name: String): String {
@@ -70,7 +69,6 @@ class Config(path: String) {
     }
 
     init {
-        name = path.substring(path.lastIndexOf('/') + 1)
         ">> Load Config - $name".log()
         val file = File(path)
         if (!file.exists()) loadConfig(file)

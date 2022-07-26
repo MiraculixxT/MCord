@@ -1,8 +1,8 @@
 package de.miraculixx.mcord.modules.games.utils.enums
 
-enum class Game {
-    TIC_TAC_TOE,
-    FOUR_WINS,
-    IDLE,
-    CHESS
+enum class Game(val short: String) {
+    TIC_TAC_TOE("TTT"),
+    CONNECT_4("C4"),
+    IDLE("IDLE"),
+    CHESS("Chess")
 }

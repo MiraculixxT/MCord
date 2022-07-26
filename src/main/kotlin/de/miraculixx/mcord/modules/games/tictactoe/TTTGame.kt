@@ -1,6 +1,9 @@
 package de.miraculixx.mcord.modules.games.tictactoe
 
+import de.miraculixx.mcord.config.msg
+import de.miraculixx.mcord.config.msgDiff
 import de.miraculixx.mcord.modules.games.GameManager
+import de.miraculixx.mcord.modules.games.GoalManager
 import de.miraculixx.mcord.modules.games.utils.FieldsTwoPlayer
 import de.miraculixx.mcord.modules.games.utils.SimpleGame
 import de.miraculixx.mcord.modules.games.utils.enums.Game
@@ -67,7 +70,7 @@ class TTTGame(
         return rows
     }
 
-    private fun calcEmbed(): MessageEmbed {
+    private suspend fun calcEmbed(): MessageEmbed {
         return Embed {
             title = "<:gamespot:988131155159183420> || TIC TAC TOE"
             description = "<:xx:988156472020066324> - Player Red ${member1.asMention}\n" +
@@ -77,9 +80,9 @@ class TTTGame(
                     else member2.asMention
             if (winner != null) {
                 val message = when (winner!!) {
-                    FieldsTwoPlayer.EMPTY -> "Unentschieden"
-                    FieldsTwoPlayer.PLAYER_1 -> "${member1.asMention} hat gewonnen!"
-                    FieldsTwoPlayer.PLAYER_2 -> "${member2.asMention} hat gewonnen!"
+                    FieldsTwoPlayer.EMPTY -> msg("draw", guildID)
+                    FieldsTwoPlayer.PLAYER_1 -> "${member1.asMention} ${msg("win", guildID)}"
+                    FieldsTwoPlayer.PLAYER_2 -> "${member2.asMention} ${msg("win", guildID)}"
                 }
                 field {
                     name = "~~<                                                                            >~~"
@@ -90,14 +93,14 @@ class TTTGame(
             } else if (whoPlays) {
                 field {
                     name = "~~<                                                                            >~~"
-                    value = "> ${member1.asMention} ist am Zug"
+                    value = "> ${member1.asMention} ${msg("onMove", guildID)}"
                     inline = false
                 }
                 color = 0xff0000
             } else {
                 field {
                     name = "~~<                                                                            >~~"
-                    value = "> ${member2.asMention} ist am Zug"
+                    value = "> ${member2.asMention} ${msg("onMove", guildID)}"
                     inline = false
                 }
                 color = 0x1fff00
@@ -107,25 +110,31 @@ class TTTGame(
 
     private suspend fun checkWin() {
         winner = getWinner() ?: return
-        val replayButton = Button.primary("GAME_TTT_R_${member1.id}_${member2.id}", "Revanche").withEmoji(Emoji.fromUnicode("\uD83D\uDD01"))
+        val replayButton = Button.primary("GAME_TTT_R_${member1.id}_${member2.id}", "Replay").withEmoji(Emoji.fromUnicode("\uD83D\uDD01"))
         val msg = "~~========================~~\n\n" +
-                "**\uD83C\uDFC1 || Das Spiel wurde beendet!**\n" +
+                "**\uD83C\uDFC1 || ${msg("gameEnd", guildID)}**\n" +
                 when (winner ?: return) {
-                    FieldsTwoPlayer.EMPTY -> "Niemand hat gewonnen - Unentschieden"
-                    FieldsTwoPlayer.PLAYER_1 -> "<:xx:988156472020066324> ${member1.asMention} hat gewonnen!"
-                    FieldsTwoPlayer.PLAYER_2 -> "<:oo:988156473274163200> ${member2.asMention} hat gewonnen!"
+                    FieldsTwoPlayer.EMPTY -> {
+                        GoalManager.registerDraw(Game.TIC_TAC_TOE, member1.idLong, guildID)
+                        GoalManager.registerDraw(Game.TIC_TAC_TOE, member2.idLong, guildID)
+                        msg("draw", guildID)
+                    }
+                    FieldsTwoPlayer.PLAYER_1 -> {
+                        GoalManager.registerWin(Game.TIC_TAC_TOE, bot != null, member1.idLong, guildID)
+                        "<:xx:988156472020066324> ${member1.asMention} ${msg("win", guildID)}"
+                    }
+                    FieldsTwoPlayer.PLAYER_2 -> {
+                        GoalManager.registerWin(Game.TIC_TAC_TOE, bot != null, member2.idLong, guildID)
+                        "<:oo:988156473274163200> ${member2.asMention} ${msg("win", guildID)}!"
+                    }
                 }
         if (bot != null) thread.sendMessage(msg)
-            .setEmbeds(EmbedBuilder().setDescription("Der Spiel-Bereich löscht sich in **30s**").build()).queue()
+            .setEmbeds(EmbedBuilder().setDescription(msg("selfDelete", guildID)).build()).queue()
         else thread.sendMessage(msg)
-            .setEmbeds(EmbedBuilder().setDescription("Der Spiel-Bereich löscht sich in **30s**").build())
+            .setEmbeds(EmbedBuilder().setDescription(msg("selfDelete", guildID)).build())
             .setActionRow(replayButton).queue()
 
         GameManager.removeGame(guildID, Game.TIC_TAC_TOE, uuid)
-
-        val ex = if (bot == null) "" else "_Bot"
-        val winID = if (winner == FieldsTwoPlayer.PLAYER_1) member1.idLong else member2.idLong
-        SQL.addWin(winID, guildID, "TTT$ex")
     }
 
     private fun getWinner(): FieldsTwoPlayer? {
@@ -164,7 +173,7 @@ class TTTGame(
     override suspend fun interact(options: List<String>, interactor: Member, event: GenericComponentInteractionCreateEvent?) {
         val memberID = interactor.idLong
         if (memberID != member1.idLong && memberID != member2.idLong) {
-            event?.reply("```diff\n- Du bist kein Teil dieser Partie!\nStarte eine eigene über /tictactoe <user>```")?.setEphemeral(true)?.queue()
+            event?.reply(msgDiff(msg("notPartOfMatch", guildID).replace("%GAME%", "tictactoe")))?.setEphemeral(true)?.queue()
             return
         }
         val row = options[0].toInt()
@@ -174,23 +183,23 @@ class TTTGame(
                 fields[row][column] = FieldsTwoPlayer.PLAYER_1
                 whoPlays = false
                 thread.sendMessage(
-                    "${member1.asMention} hat <:xx:988156472020066324> auf Feld **$options** gesetzt.\n" +
-                            "> ${member2.asMention} du bist am Zug!"
+                    "<:xx:988156472020066324> -> **${row+1}${column+1}**\n" +
+                            "> ${member2.asMention} ${msg("onMove", guildID)}"
                 ).queue()
             } else {
-                event?.reply("```diff\n- Du bist gerade nicht am Zug!```")?.setEphemeral(true)?.queue()
+                event?.reply(msgDiff(msg("notYourMove", guildID)))?.setEphemeral(true)?.queue()
                 return
             }
         } else {
             if (!whoPlays) {
                 fields[row][column] = FieldsTwoPlayer.PLAYER_2
                 thread.sendMessage(
-                    "${member2.asMention} hat <:oo:988156473274163200> auf Feld **$options** gesetzt.\n" +
-                            "> ${member1.asMention} du bist am Zug!"
+                    "<:oo:988156473274163200> -> **${row+1}${column+1}**\n" +
+                            "> ${member1.asMention} ${msg("onMove", guildID)}"
                 ).queue()
                 whoPlays = true
             } else {
-                event?.reply("```diff\n- Du bist gerade nicht am Zug!```")?.setEphemeral(true)?.queue()
+                event?.reply(msgDiff(msg("notYourMove", guildID)))?.setEphemeral(true)?.queue()
                 return
             }
         }
@@ -212,7 +221,7 @@ class TTTGame(
         interact(listOf(pos.first.toString(), pos.second.toString()), member2, null)
     }
 
-    override fun setWinner(win: FieldsTwoPlayer) {
+    override suspend fun setWinner(win: FieldsTwoPlayer) {
         winner = win
         message.editMessageEmbeds(calcEmbed()).setActionRows(calcButtons()).queue()
         thread.delete().queue()
@@ -234,7 +243,7 @@ class TTTGame(
             thread.addThreadMember(member1).complete()
             thread.addThreadMember(member2).complete()
             val mention = if (whoPlays) member1.asMention else member2.asMention
-            thread.sendMessage("$mention du bist am Zug!").queue()
+            thread.sendMessage("$mention ${msg("onMove", guildID)}").queue()
             if (bot != null && !whoPlays)
                 botMove()
         }

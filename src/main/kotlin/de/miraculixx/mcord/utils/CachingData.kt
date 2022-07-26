@@ -1,5 +1,5 @@
 package de.miraculixx.mcord.utils
 
-import de.miraculixx.mcord.modules.games.utils.enums.DailyChallenge
+import de.miraculixx.mcord.modules.games.utils.enums.DailyGoals
 
-var dailyChallenges: List<DailyChallenge>? = null
+var dailyGoals: List<DailyGoals>? = null

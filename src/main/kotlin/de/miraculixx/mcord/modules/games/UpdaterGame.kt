@@ -2,10 +2,10 @@
 
 package de.miraculixx.mcord.modules.games
 
-import de.miraculixx.mcord.modules.games.utils.enums.DailyChallenge
+import de.miraculixx.mcord.modules.games.utils.enums.DailyGoals
 import de.miraculixx.mcord.utils.Color
 import de.miraculixx.mcord.utils.api.SQL
-import de.miraculixx.mcord.utils.dailyChallenges
+import de.miraculixx.mcord.utils.dailyGoals
 import de.miraculixx.mcord.utils.log
 import dev.minn.jda.ktx.messages.Embed
 import dev.minn.jda.ktx.messages.edit
@@ -35,11 +35,11 @@ object UpdaterGame {
             launch {
                 val result = SQL.call("SELECT * FROM globalDaily")
                 result.next()
-                dailyChallenges = buildList {
+                dailyGoals = buildList {
                     (1..3).forEach {
-                        add(DailyChallenge.valueOf(result.getString("Task_$it")))
+                        add(DailyGoals.valueOf(result.getString("Task_$it")))
                     }
-                    add(DailyChallenge.valueOf(result.getString("Task_Bonus")))
+                    add(DailyGoals.valueOf(result.getString("Task_Bonus")))
                 }
                 while (true) {
                     val current = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault())
@@ -62,17 +62,19 @@ object UpdaterGame {
 
     suspend fun updateDailyChallenges() {
         "---=---> DAILY UPDATE <---=---".log(Color.YELLOW)
-        val list = DailyChallenge.values().filter { !it.bonus }
-        val bonus = DailyChallenge.values().filter { it.bonus }
+        val list = DailyGoals.values().filter { !it.bonus }.toMutableList()
+        val bonus = DailyGoals.values().filter { it.bonus }
 
-        val dailyChallenges = buildList {
+        dailyGoals = buildList {
             repeat(3) {
-                add(list.random())
+                val newGoal = list.random()
+                add(newGoal)
+                list.remove(newGoal)
             }
             add(bonus.random())
         }
 
-        SQL.updateDailyChallenges(dailyChallenges.map { it.name })
+        SQL.updateDailyChallenges(dailyGoals!!.map { it.name })
     }
 
     private suspend fun updateLeaderboards() = runBlocking {

@@ -9,11 +9,8 @@ object ConfigManager {
         return configs[type] ?: configs[Configs.CORE]!!
     }
 
-    //static values
-    val apiKey: String
-
     init {
-        var jarPath = File(this.javaClass.protectionDomain.codeSource.location.toURI()).path
+        var jarPath = File(javaClass.protectionDomain.codeSource.location.toURI()).path
         val jarName = jarPath.substring(jarPath.lastIndexOf("/") + 1)
         jarPath = jarPath.removeSuffix(jarName)
 
@@ -21,15 +18,12 @@ object ConfigManager {
         val configFolder = File("$jarPath${s}config")
         println(configFolder.path)
         if (!configFolder.exists() || !configFolder.isDirectory) configFolder.mkdirs()
+        File("$jarPath${s}config${s}lang").mkdirs()
 
         configs = mapOf(
-            Configs.CORE to Config("${configFolder.path}${s}core.yml"),
-            Configs.SETTINGS to Config("${configFolder.path}${s}config.yml"),
-            Configs.GAME_SETTINGS to Config("${configFolder.path}${s}gamesettings.yml")
+            Configs.CORE to Config("${configFolder.path}${s}core.yml", "core.yml"),
+            Configs.SETTINGS to Config("${configFolder.path}${s}config.yml", "config.yml"),
+            Configs.GAME_SETTINGS to Config("${configFolder.path}${s}gamesettings.yml", "gamesettings.yml")
         )
-
-
-        //Applying values
-        apiKey = getConfig(Configs.CORE).getString("API_TOKEN")
     }
 }

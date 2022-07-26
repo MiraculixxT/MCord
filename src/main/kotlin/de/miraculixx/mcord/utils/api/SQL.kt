@@ -25,14 +25,15 @@ object SQL {
         return con
     }
 
-    suspend fun call(statement: String): ResultSet {
+    suspend fun call(statement: String, resultSet: Int? = null): ResultSet {
         while (!connection.isValid(1)) {
             "ERROR >> SQL - No valid connection!".error()
             connection = connect()
             delay(1000)
         }
 
-        val query = connection.prepareStatement(statement)
+        val query = if (resultSet != null) connection.prepareStatement(statement, resultSet)
+        else connection.prepareStatement(statement)
         return query.executeQuery()
     }
 
@@ -52,13 +53,14 @@ object SQL {
         call("INSERT INTO userDaily VALUES ($userID, false, false, false, false)")
         return UserData(
             userSnowflake, 0,
-            UserEmote(emptyMap(),"\uD83D\uDD34", "\uD83D\uDFE1"),
+            UserEmote(emptyMap(), "\uD83D\uDD34", "\uD83D\uDFE1"),
             UserWins(0, 0, 0, 0, 0, 0),
             UserDailyChallenges(false, false, false, false)
         )
     }
+
     private suspend fun createGuild(guildSnowflake: Long): GuildData {
-        call("INSERT INTO guildData VALUES (default, $guildSnowflake, false, 0)")
+        call("INSERT INTO guildData VALUES (default, $guildSnowflake, false, 0, 'EN_US')")
         return GuildData(guildSnowflake, false, 0)
     }
 
@@ -81,10 +83,12 @@ object SQL {
                 val emoteMap = buildMap {
                     while (allEmotes.next()) {
                         try {
-                            put(allEmotes.getString("Emote_Type"),
-                                allEmotes.getString("Emote"))
+                            put(
+                                allEmotes.getString("Emote_Type"),
+                                allEmotes.getString("Emote")
+                            )
                         } catch (e: Exception) {
-                            put("1","2")
+                            put("1", "2")
                         }
                     }
                 }
@@ -118,6 +122,7 @@ object SQL {
             } else null
         )
     }
+
     suspend fun getGuild(guildSnowflake: Long): GuildData {
         val result = call("SELECT * FROM guildData WHERE Discord_ID=$guildSnowflake")
         if (!result.next()) return createGuild(guildSnowflake)
@@ -136,7 +141,8 @@ object SQL {
         val id = getUserID(userSnowflake, guildSnowflake)
         call("INSERT INTO userEmotes VALUES ($id, '$type', '$emote')")
     }
-    suspend fun setActiveEmote(userSnowflake: Long, guildSnowflake: Long,type: String, newEmote: String) {
+
+    suspend fun setActiveEmote(userSnowflake: Long, guildSnowflake: Long, type: String, newEmote: String) {
         val id = getUserID(userSnowflake, guildSnowflake)
         call("UPDATE userEmotesActive SET $type='$newEmote' WHERE ID=$id")
     }

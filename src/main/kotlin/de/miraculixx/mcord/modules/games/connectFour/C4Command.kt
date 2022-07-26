@@ -56,7 +56,7 @@ class C4Command : SlashCommandEvent {
                 .setEphemeral(true).queue()
             return
         }
-        val tools = GameTools("4G", "4 Gewinnt", Game.FOUR_WINS)
+        val tools = GameTools("4G", "4 Gewinnt", Game.CONNECT_4)
         tools.command(it)
     }
 
@@ -69,7 +69,6 @@ class C4Command : SlashCommandEvent {
             SkinType.SELECTED -> SelectOption.of(">> CURRENT SKIN <<", "${emote}_SELECTED").withEmoji(emoji)
         }
     }
-
     private fun addEmotes(config: Config, list: Collection<String>, current: String): List<SelectOption> {
         return buildList {
             config.getObjectList<Int>("Connect4-RawEmotes").forEach { (emote, price) ->

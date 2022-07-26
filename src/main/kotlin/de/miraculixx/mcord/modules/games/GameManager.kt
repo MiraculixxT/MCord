@@ -1,5 +1,6 @@
 package de.miraculixx.mcord.modules.games
 
+import de.miraculixx.mcord.config.msg
 import de.miraculixx.mcord.modules.games.chess.ChessGame
 import de.miraculixx.mcord.modules.games.connectFour.C4Game
 import de.miraculixx.mcord.modules.games.tictactoe.TTTGame
@@ -21,52 +22,53 @@ object GameManager {
     // HashMap<GuildID, Map<GameType, HashMap<GameID, GameInstance>>>
     private val guilds = HashMap<Long, Map<Game, HashMap<UUID, SimpleGame>>>()
 
-    fun searchGame(hook: InteractionHook, member: Member, gameTag: String, gameName: String) {
+    suspend fun searchGame(hook: InteractionHook, member: Member, gameTag: String, gameName: String) {
         hook.editOriginal(
             "\uD83C\uDFAE **|| ${gameName.uppercase()}**\n" +
-                    "${member.asMention} sucht nach einem Gegner zum $gameName spielen!\n" +
-                    "> Bist du bereit für ein Spiel? Klicke auf `Accept`"
+                    "${member.asMention} ${msg("commandGameQueue", member.guild.idLong).replace("%GAME%", gameName)}"
         ).setActionRow(
             Button.success("GAME_${gameTag}_ACCEPT_${member.id}", "Accept").withEmoji(Emoji.fromUnicode("✔️")),
             Button.danger("GAME_${gameTag}_CANCEL_${member.id}", "Cancel").withEmoji(Emoji.fromUnicode("✖️"))
         ).queue()
     }
 
-    fun requestGame(hook: InteractionHook, member: Member, opponent: Member, gameTag: String, gameName: String) {
+    suspend fun requestGame(hook: InteractionHook, member: Member, opponent: Member, gameTag: String, gameName: String) {
         hook.editOriginal(
             "\uD83C\uDFAE **|| ${gameName.uppercase()}**\n" +
-                    "${opponent.asMention} - Du wurdest herausgefordert zu einem $gameName match von ${member.asMention}!\n" +
-                    "> Bist du bereit für das Spiel? Klicke auf `Accept`"
+                    "${opponent.asMention} - ${msg("commandGameRequest", member.guild.idLong).replace("%GAME%", gameName).replace("%MEMBER%", member.asMention)}"
         ).setActionRow(
             Button.success("GAME_${gameTag}_YES_${member.id}_${opponent.id}", "Accept").withEmoji(Emoji.fromUnicode("✔️")),
             Button.danger("GAME_${gameTag}_NO_${opponent.id}", "Deny").withEmoji(Emoji.fromUnicode("✖️"))
         ).queue()
     }
 
-    fun newGame(game: Game, guild: Guild, members: List<String>, channelID: Long, botLevel: Int = 0) {
+    suspend fun newGame(game: Game, guild: Guild, members: List<String>, channelID: Long, botLevel: Int = 0) {
         if (guilds[guild.idLong] == null)
-            guilds[guild.idLong] = mapOf(Game.TIC_TAC_TOE to hashMapOf(), Game.FOUR_WINS to hashMapOf(), Game.CHESS to hashMapOf())
+            guilds[guild.idLong] = mapOf(Game.TIC_TAC_TOE to hashMapOf(), Game.CONNECT_4 to hashMapOf(), Game.CHESS to hashMapOf())
+        val member1 = guild.retrieveMemberById(members[0]).complete() ?: return
+        val member2 = guild.retrieveMemberById(members[1]).complete() ?: return
+        GoalManager.registerNewGame(game, false, member1.idLong, member2.idLong)
         val uuid = UUID.randomUUID()
         guilds[guild.idLong]!![game]!![uuid] = when (game) {
             Game.TIC_TAC_TOE -> TTTGame(
-                guild.retrieveMemberById(members[0]).complete() ?: return,
-                guild.retrieveMemberById(members[1]).complete() ?: return,
+                member1,
+                member2,
                 uuid,
                 channelID,
                 guild,
                 botLevel
             )
-            Game.FOUR_WINS -> C4Game(
-                guild.retrieveMemberById(members[0]).complete() ?: return,
-                guild.retrieveMemberById(members[1]).complete() ?: return,
+            Game.CONNECT_4 -> C4Game(
+                member1,
+                member2,
                 uuid,
                 guild,
                 channelID,
                 botLevel
             )
             Game.CHESS -> ChessGame(
-                guild.retrieveMemberById(members[0]).complete() ?: return,
-                guild.retrieveMemberById(members[1]).complete() ?: return,
+                member1,
+                member2,
                 uuid,
                 guild,
                 channelID
@@ -83,7 +85,7 @@ object GameManager {
         return guilds[guildID]?.get(type)?.remove(uuid) != null
     }
 
-    fun shutdown() {
+    suspend fun shutdown() {
         "---=---> GAME MANAGER <---=---".log(Color.YELLOW)
         guilds.forEach { (guild, data) ->
             data.forEach { (type, games) ->

@@ -75,6 +75,9 @@ object SlashCommandManager {
                     addOption(OptionType.CHANNEL, "stats-channel", "Setup current channel your stats channel? (PREMIUM ONLY)", false)
                     addOption(OptionType.CHANNEL, "game-channel", "Setup current channel to a Only-Gaming channel?", false)
                 }
+                subcommand("language", "Change the bot language for this guild") {
+                    addOption(OptionType.STRING, "lang", "Choose your preferred bot language", true, true)
+                }
             }
         ).queue()
         mainServer?.updateCommands()
@@ -83,6 +86,7 @@ object SlashCommandManager {
                     defaultPermissions = DefaultMemberPermissions.DISABLED
                     subcommand("swap-daily", "Ändern der Täglichen Challenges")
                     subcommand("refresh-stats", "Erneuert die Stats")
+                    subcommand("draw-image", "Draw Image")
                 }
             )?.queue()
     }

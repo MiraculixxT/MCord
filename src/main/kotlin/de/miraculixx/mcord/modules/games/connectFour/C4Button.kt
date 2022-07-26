@@ -9,7 +9,7 @@ import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent
 
 class C4Button : ButtonEvent {
     override suspend fun trigger(it: ButtonInteractionEvent) {
-        val tools = GameTools("4G", "4 Gewinnt", Game.FOUR_WINS)
+        val tools = GameTools("4G", "4 Gewinnt", Game.CONNECT_4)
         tools.buttons(it)
     }
 }

@@ -1,6 +1,6 @@
 package de.miraculixx.mcord.modules.games.utils.enums
 
-enum class DailyChallenge(val reward: Int, val bonus: Boolean) {
+enum class DailyGoals(val reward: Int, val bonus: Boolean) {
     WIN_C4_BOT(50, false),
     WIN_C4_USER(42, false),
     WIN_TTT_BOT(29, false),

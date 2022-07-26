@@ -1,12 +1,12 @@
 package de.miraculixx.mcord.modules.utils.commands
 
+import de.miraculixx.mcord.config.guildCache
+import de.miraculixx.mcord.config.msg
 import de.miraculixx.mcord.modules.games.UpdaterGame
 import de.miraculixx.mcord.utils.api.SQL
 import de.miraculixx.mcord.utils.entities.SlashCommandEvent
 import de.miraculixx.mcord.utils.notify
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
+import dev.minn.jda.ktx.messages.Embed
 import net.dv8tion.jda.api.Permission
 import net.dv8tion.jda.api.entities.emoji.Emoji
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent
@@ -15,31 +15,40 @@ import net.dv8tion.jda.api.interactions.components.buttons.Button
 
 class SetupCommand : SlashCommandEvent {
     override suspend fun trigger(it: SlashCommandInteractionEvent) {
-        val subName = it.subcommandName
-        if (subName == "help")
-            it.reply("HELP")
-        else {
-            val guild = it.guild ?: return
-            it.deferReply().queue()
-            val hook = it.hook
+        when (it.subcommandName) {
+            "help" -> it.reply("HELP")
+            "channel" -> {
+                val guild = it.guild ?: return
+                it.deferReply().queue()
+                val hook = it.hook
+                val botPerms = listOf(
+                    Permission.VIEW_CHANNEL,
+                    Permission.CREATE_PUBLIC_THREADS,
+                    Permission.CREATE_PRIVATE_THREADS,
+                    Permission.MESSAGE_SEND,
+                    Permission.MESSAGE_SEND_IN_THREADS,
+                    Permission.MANAGE_WEBHOOKS,
+                    Permission.MANAGE_THREADS,
+                    Permission.MESSAGE_MANAGE
+                )
 
-            CoroutineScope(Dispatchers.Default).launch {
                 if (it.getOption("stats-channel") != null) {
                     val g = SQL.getGuild(guild.idLong)
                     if (g.premium) {
                         val target = it.getOption("stats-channel")!!.asTextChannel
                         if (target == null) {
                             hook.editOriginal("```diff\n- Please select a valid channel. NOT a category```")
-                            return@launch
+                            return
                         }
                         try {
                             if (target.getHistoryFromBeginning(10).complete().size() != 0) {
                                 hook.editOriginal("```diff\n- This Channel has to much traffic! Please choose an empty Channel to setup```").queue()
-                                return@launch
+                                return
                             }
 
-                            target.upsertPermissionOverride(guild.publicRole).setDenied(Permission.ALL_TEXT_PERMISSIONS)
+                            target.upsertPermissionOverride(guild.publicRole).setDenied(Permission.MESSAGE_SEND)
                                 .setAllowed(Permission.VIEW_CHANNEL).queue()
+                            //target.upsertPermissionOverride(it.jda.selfUser)
                             UpdaterGame.updateLeaderboardGuild(guild, target)
                             //target?.upsertPermissionOverride(it.jda.selfUser)
                             hook.editOriginal("**>> ERFOLG**\n${target.asMention} ist nun der Game Stats Channel!").queue()
@@ -55,12 +64,38 @@ class SetupCommand : SlashCommandEvent {
                                 Button.link("https://miraculixx.de/mcreate/shop", "Webshop").withEmoji(Emoji.fromUnicode("\uD83D\uDED2"))
                             )
                             .queue()
-                        return@launch
+                        return
+                    }
+                    if (it.getOption("game-channel") != null) {
+
                     }
                 }
-                //if (it.getOption("game-channel") != null)
-                //category.createTextChannel("\uD83C\uDFAE╏tic-tac-toe").complete()
-
+            }
+            "language" -> {
+                val guildID = it.guild?.idLong ?: return
+                val language = it.getOption("lang")!!.asString
+                val langKey = when (language) {
+                    "German" -> "DE_DE"
+                    "English" -> "EN_US"
+                    else -> "Error"
+                }
+                SQL.call("UPDATE guildData SET lang='$langKey' WHERE Discord_ID=$guildID")
+                guildCache[guildID] = langKey
+                it.replyEmbeds(
+                    Embed {
+                        title = "\uD83C\uDF0D  **||  LANGUAGE SWITCHER**"
+                        description = "```diff\n" +
+                                "+ ${msg("systemLanguageSwitch", guildID)}```\n" +
+                                "**New Language ~~⠀⠀>~~** `$language ($langKey)`\n" +
+                                "<:blanc:784059217890770964>\n" +
+                                msg("systemLanguageInfo", guildID)
+                        color = 0xc99d11
+                        footer {
+                            name = "MGame-Club - Play games inside of Discord everywhere!"
+                            iconUrl = "https://i.imgur.com/Im1QNQ9.png"
+                        }
+                    }
+                )
             }
         }
     }

@@ -2,7 +2,10 @@
 
 package de.miraculixx.mcord.modules.games.connectFour
 
+import de.miraculixx.mcord.config.msg
+import de.miraculixx.mcord.config.msgDiff
 import de.miraculixx.mcord.modules.games.GameManager
+import de.miraculixx.mcord.modules.games.GoalManager
 import de.miraculixx.mcord.modules.games.utils.FieldsTwoPlayer
 import de.miraculixx.mcord.modules.games.utils.SimpleGame
 import de.miraculixx.mcord.modules.games.utils.enums.Game
@@ -49,8 +52,7 @@ class C4Game(
         (1..7).map { FieldsTwoPlayer.EMPTY }.toTypedArray()
     }
 
-    private fun calcEmbed(): MessageEmbed {
-
+    private suspend fun calcEmbed(): MessageEmbed {
         return Embed {
             title = "<:gamespot:988131155159183420> || CONNECT 4"
             description = "$member1Emote - Player 1 ${member1.asMention}\n" +
@@ -62,14 +64,14 @@ class C4Game(
                 val mention = if (whoPlays) member1.asMention else member2.asMention
                 field(
                     "~~<                                                                            >~~",
-                    "> $mention ist am Zug", false
+                    "> $mention ${msg("onMove", guildID)}", false
                 )
                 color = 0xb8800b
             } else {
                 val msg = when (winner!!) {
-                    FieldsTwoPlayer.EMPTY -> "Unentschieden"
-                    FieldsTwoPlayer.PLAYER_1 -> "${member1.asMention} hat gewonnen"
-                    FieldsTwoPlayer.PLAYER_2 -> "${member2.asMention} hat gewonnen"
+                    FieldsTwoPlayer.EMPTY -> msg("draw", guildID)
+                    FieldsTwoPlayer.PLAYER_1 -> "${member1.asMention} ${msg("win", guildID)}"
+                    FieldsTwoPlayer.PLAYER_2 -> "${member2.asMention} ${msg("win", guildID)}"
                 }
                 field(
                     "~~<                                                                            >~~",
@@ -169,18 +171,18 @@ class C4Game(
         val row = options[1][0]
         val memberID = interactor.idLong
         if (memberID != member1.idLong && memberID != member2.idLong) {
-            event?.reply("```diff\n- Du bist kein Teil dieser Partie!\nStarte eine eigene über /4-wins <user>```")?.setEphemeral(true)?.queue()
+            event?.reply(msgDiff(msg("notPartOfMatch", guildID).replace("%GAME%", "connect-4")))?.setEphemeral(true)?.queue()
             return
         }
         if ((whoPlays && memberID != member1.idLong) || (!whoPlays && memberID != member2.idLong)) {
-            event?.reply("```diff\n- Du bist gerade nicht am Zug!```")?.setEphemeral(true)?.queue()
+            event?.reply(msgDiff(msg("notYourMove", guildID)))?.setEphemeral(true)?.queue()
             return
         }
         event?.editMessage(message.contentRaw + " ")?.complete()
         sendUpdate(row.digitToInt(), column.digitToInt(), interactor)
     }
 
-    override fun setWinner(win: FieldsTwoPlayer) {
+    override suspend fun setWinner(win: FieldsTwoPlayer) {
         winner = win
         message.editMessageEmbeds(calcEmbed()).setActionRows(calcButtons()).queue()
         thread.delete().queue()
@@ -202,8 +204,8 @@ class C4Game(
         val opponent = if (whoPlays) member2 else member1
         fields[row][column] = who
         thread.sendMessage(
-            "${interactor.asMention} hat $emote in Spalte **${column.plus(1)}** gesetzt.\n" +
-                    "> ${opponent.asMention} du bist am Zug!"
+            "$emote -> ${msg("column", guildID)} **${column.plus(1)}**\n" +
+                    "> ${opponent.asMention} ${msg("onMove", guildID)}"
         ).queue()
         whoPlays = !whoPlays
 
@@ -216,31 +218,35 @@ class C4Game(
         }
         if (checkWinner(who) || full) {
             winner = if (!full) who else FieldsTwoPlayer.EMPTY
-            val replayButton = Button.primary("GAME_4G_R_${member1.id}_${member2.id}", "Revanche").withEmoji(Emoji.fromUnicode("\uD83D\uDD01"))
+            val replayButton = Button.primary("GAME_4G_R_${member1.id}_${member2.id}", "Replay").withEmoji(Emoji.fromUnicode("\uD83D\uDD01"))
             val msg = "~~========================~~\n\n" +
-                    "**\uD83C\uDFC1 || Das Spiel wurde beendet!**\n" +
+                    "**\uD83C\uDFC1 || ${msg("gameEnd", guildID)}**\n" +
                     when (winner ?: FieldsTwoPlayer.EMPTY) {
-                        FieldsTwoPlayer.EMPTY -> "Niemand hat gewonnen - Unentschieden"
-                        FieldsTwoPlayer.PLAYER_1 -> "$member1Emote ${member1.asMention} hat gewonnen!"
-                        FieldsTwoPlayer.PLAYER_2 -> "$member2Emote ${member2.asMention} hat gewonnen!"
+                        FieldsTwoPlayer.EMPTY -> {
+                            GoalManager.registerDraw(Game.CONNECT_4, member1.idLong, guildID)
+                            GoalManager.registerDraw(Game.CONNECT_4, member2.idLong, guildID)
+                            msg("draw", guildID)
+                        }
+                        FieldsTwoPlayer.PLAYER_1 -> {
+                            GoalManager.registerWin(Game.CONNECT_4, bot != null, member1.idLong, guildID)
+                            "$member1Emote ${member1.asMention} ${msg("win", guildID)}"
+                        }
+                        FieldsTwoPlayer.PLAYER_2 -> {
+                            GoalManager.registerWin(Game.CONNECT_4, bot != null, member2.idLong, guildID)
+                            "$member2Emote ${member2.asMention} ${msg("win", guildID)}"
+                        }
                     }
             if (bot != null)
                 thread.sendMessage(msg)
-                    .setEmbeds(EmbedBuilder().setDescription("Der Spiel-Bereich löscht sich in **30s**").build()).queue()
+                    .setEmbeds(EmbedBuilder().setDescription(msg("selfDelete", guildID)).build()).queue()
             else thread.sendMessage(msg)
-                .setEmbeds(EmbedBuilder().setDescription("Der Spiel-Bereich löscht sich in **30s**").build())
+                .setEmbeds(EmbedBuilder().setDescription(msg("selfDelete", guildID)).build())
                 .setActionRow(replayButton).queue()
-            GameManager.removeGame(guildID, Game.FOUR_WINS, uuid)
-
-            val ex = if (bot == null) "" else "_Bot"
-            if (winner == FieldsTwoPlayer.PLAYER_1)
-                SQL.addWin(member1.idLong, guildID, "C4$ex")
-            else if (winner == FieldsTwoPlayer.PLAYER_2)
-                SQL.addWin(member2.idLong, guildID, "C4$ex")
+            GameManager.removeGame(guildID, Game.CONNECT_4, uuid)
         }
         val selector = calcButtons()
         message.editMessageEmbeds(calcEmbed()).setActionRows(selector).complete()
-        threadMessage.editMessage("``Interaction Panel``").setActionRows(selector).complete()
+        threadMessage.editMessageComponents(selector).complete()
 
         if (winner != null) {
             delay(30.seconds)
@@ -276,7 +282,7 @@ class C4Game(
             thread.addThreadMember(member1).complete()
             thread.addThreadMember(member2).complete()
             val mention = if (whoPlays) member1 else member2
-            thread.sendMessage("${mention.asMention} du bist am Zug!").queue()
+            thread.sendMessage("${mention.asMention} ${msg("onMove", guildID)}").queue()
 
             if (bot != null && mention.id == member2.id)
                 CoroutineScope(Dispatchers.Default).launch {
