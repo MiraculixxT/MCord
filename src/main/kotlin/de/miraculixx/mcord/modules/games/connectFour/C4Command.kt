@@ -3,12 +3,12 @@ package de.miraculixx.mcord.modules.games.connectFour
 import de.miraculixx.mcord.config.Config
 import de.miraculixx.mcord.config.ConfigManager
 import de.miraculixx.mcord.config.Configs
-import de.miraculixx.mcord.modules.games.utils.enums.Game
 import de.miraculixx.mcord.modules.games.utils.GameTools
+import de.miraculixx.mcord.modules.games.utils.enums.Game
 import de.miraculixx.mcord.modules.games.utils.enums.SkinType
 import de.miraculixx.mcord.utils.api.SQL
 import de.miraculixx.mcord.utils.entities.SlashCommandEvent
-import dev.minn.jda.ktx.interactions.components.SelectMenu
+import dev.minn.jda.ktx.interactions.components.StringSelectMenu
 import dev.minn.jda.ktx.messages.Embed
 import net.dv8tion.jda.api.entities.emoji.Emoji
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent
@@ -28,14 +28,14 @@ class C4Command : SlashCommandEvent {
 
             //Building default skin dropdowns
             val conf = ConfigManager.getConfig(Configs.GAME_SETTINGS)
-            val primary = SelectMenu("GAME_C4_SKIN_1") {
+            val primary = StringSelectMenu("GAME_C4_SKIN_1") {
                 placeholder = "Primary Chip Skin"
                 minValues = 1
                 maxValues = 1
                 addOptions(addEmote("\uD83D\uDFE1", SkinType.FREE))
                 addOptions(addEmotes(conf, primaryEmotes, userEmotes.c4))
             }
-            val secondary = SelectMenu("GAME_C4_SKIN_2") {
+            val secondary = StringSelectMenu("GAME_C4_SKIN_2") {
                 placeholder = "Secondary Chip Skin"
                 minValues = 1
                 maxValues = 1
@@ -52,7 +52,7 @@ class C4Command : SlashCommandEvent {
                             "> - Primary `->` Dein Hauptskin. Wird in den meisten Fällen verwendet\n" +
                             "> - Secondary `->` Dein Ausweichskin. Wird verwendet, wenn dein Herausforderer den selben Skin nutzt"
                 }
-            ).addActionRows(ActionRow.of(primary), ActionRow.of(secondary))
+            ).setComponents(ActionRow.of(primary), ActionRow.of(secondary))
                 .setEphemeral(true).queue()
             return
         }
@@ -69,6 +69,7 @@ class C4Command : SlashCommandEvent {
             SkinType.SELECTED -> SelectOption.of(">> CURRENT SKIN <<", "${emote}_SELECTED").withEmoji(emoji)
         }
     }
+
     private fun addEmotes(config: Config, list: Collection<String>, current: String): List<SelectOption> {
         return buildList {
             config.getObjectList<Int>("Connect4-RawEmotes").forEach { (emote, price) ->

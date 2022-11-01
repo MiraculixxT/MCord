@@ -61,7 +61,7 @@ class Main {
 
         updater = if (settingsConf.getBoolean("Updater"))
             UpdaterGame.start(jda) else null
-        SQL
+        //SQL
         "MKord is now online!".log()
 
         shutdown()
@@ -82,6 +82,7 @@ class Main {
                         println("MKord is now offline!")
                         online = false
                     }
+
                     else -> {
                         println("Command $out not found!\nCurrent Commands -> 'exit'")
                     }

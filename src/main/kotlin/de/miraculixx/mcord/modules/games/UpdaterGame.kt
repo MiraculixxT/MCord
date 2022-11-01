@@ -1,5 +1,3 @@
-@file:Suppress("LABEL_NAME_CLASH")
-
 package de.miraculixx.mcord.modules.games
 
 import de.miraculixx.mcord.modules.games.utils.enums.DailyGoals
@@ -17,7 +15,7 @@ import kotlinx.datetime.toLocalDateTime
 import net.dv8tion.jda.api.JDA
 import net.dv8tion.jda.api.entities.Guild
 import net.dv8tion.jda.api.entities.MessageHistory
-import net.dv8tion.jda.api.entities.TextChannel
+import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel
 import net.dv8tion.jda.api.exceptions.InsufficientPermissionException
 import java.sql.ResultSet
 import kotlin.time.Duration.Companion.hours
@@ -97,7 +95,7 @@ object UpdaterGame {
         "---=---=---=---=---=---=---=---".log(Color.YELLOW)
     }
 
-    suspend fun updateLeaderboardGuild(guild: Guild, statsChannel: TextChannel?) {
+    suspend fun updateLeaderboardGuild(guild: Guild, statsChannel: MessageChannel?) {
         val guildID = guild.idLong
         if (statsChannel == null) {
             SQL.call("UPDATE guildData WHERE Discord_ID=$guildID SET Stats_Channel=0")

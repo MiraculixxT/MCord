@@ -18,6 +18,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import net.dv8tion.jda.api.EmbedBuilder
 import net.dv8tion.jda.api.entities.*
+import net.dv8tion.jda.api.entities.channel.concrete.ThreadChannel
 import net.dv8tion.jda.api.entities.emoji.Emoji
 import net.dv8tion.jda.api.events.interaction.component.GenericComponentInteractionCreateEvent
 import net.dv8tion.jda.api.interactions.components.ActionRow
@@ -184,7 +185,7 @@ class C4Game(
 
     override suspend fun setWinner(win: FieldsTwoPlayer) {
         winner = win
-        message.editMessageEmbeds(calcEmbed()).setActionRows(calcButtons()).queue()
+        message.editMessageEmbeds(calcEmbed()).setComponents(calcButtons()).queue()
         thread.delete().queue()
     }
 
@@ -227,10 +228,12 @@ class C4Game(
                             GoalManager.registerDraw(Game.CONNECT_4, member2.idLong, guildID)
                             msg("draw", guildID)
                         }
+
                         FieldsTwoPlayer.PLAYER_1 -> {
                             GoalManager.registerWin(Game.CONNECT_4, bot != null, member1.idLong, guildID)
                             "$member1Emote ${member1.asMention} ${msg("win", guildID)}"
                         }
+
                         FieldsTwoPlayer.PLAYER_2 -> {
                             GoalManager.registerWin(Game.CONNECT_4, bot != null, member2.idLong, guildID)
                             "$member2Emote ${member2.asMention} ${msg("win", guildID)}"
@@ -245,7 +248,7 @@ class C4Game(
             GameManager.removeGame(guildID, Game.CONNECT_4, uuid)
         }
         val selector = calcButtons()
-        message.editMessageEmbeds(calcEmbed()).setActionRows(selector).complete()
+        message.editMessageEmbeds(calcEmbed()).setComponents(selector).complete()
         threadMessage.editMessageComponents(selector).complete()
 
         if (winner != null) {
@@ -276,9 +279,9 @@ class C4Game(
             val channel = guild.getTextChannelById(channelID)!!
             val selector = calcButtons()
             message = channel.sendMessageEmbeds(calcEmbed())
-                .setActionRows(selector).complete()
+                .setComponents(selector).complete()
             thread = message.createThreadChannel("4G - ${member1.nickname ?: member1.user.name} vs ${member2.nickname ?: member2.user.name}").complete()
-            threadMessage = thread.sendMessage(" \u1CBC ").setActionRows(selector).complete()
+            threadMessage = thread.sendMessage(" \u1CBC ").setComponents(selector).complete()
             thread.addThreadMember(member1).complete()
             thread.addThreadMember(member2).complete()
             val mention = if (whoPlays) member1 else member2

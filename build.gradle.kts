@@ -1,7 +1,8 @@
 plugins {
-    kotlin("jvm") version "1.7.0"
-    kotlin("plugin.serialization") version "1.6.20"
-    id("org.jetbrains.compose") version "1.2.0-alpha01-dev753"
+    kotlin("jvm") version "1.7.20"
+    kotlin("plugin.serialization") version "1.7.20"
+    //id("org.jetbrains.compose") version "1.2.0-alpha01-dev753"
+    id("com.github.johnrengelman.shadow") version "7.1.2"
 }
 
 group = "de.miraculixx"
@@ -10,18 +11,19 @@ version = "1.0"
 repositories {
     mavenCentral()
     maven("https://jitpack.io/")
-    maven("https://maven.pkg.jetbrains.space/public/p/compose/dev")
     google()
 }
 
 dependencies {
     //JDA - Discord API Wrapper
-    implementation("net.dv8tion", "JDA", "5.0.0-alpha.13")
-    implementation("com.github.minndevelopment", "jda-ktx","0.9.2-alpha.13")
+    implementation("net.dv8tion", "JDA", "5.0.0-alpha.22")
+    implementation("com.github.minndevelopment", "jda-ktx","0.9.6-alpha.22")
 
     //JetBrains Libraries
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.4.1")
     implementation("org.jetbrains.kotlinx", "kotlinx-datetime", "0.4.0")
-    implementation(compose.desktop.linux_x64)
+    implementation("org.apache.commons", "commons-text", "1.10.0")
+    //implementation(compose.desktop.linux_x64)
 
     //Ktor - Web API Library
     implementation("io.ktor", "ktor-client-core-jvm", "2.0.1")
@@ -38,16 +40,14 @@ dependencies {
 
 
 tasks {
-    jar {
-        manifest {
-            attributes["Main-Class"] = "de.miraculixx.mcord.MainKt"
-        }
-
-        duplicatesStrategy = DuplicatesStrategy.EXCLUDE
-        from(sourceSets.main.get().output)
-        dependsOn(configurations.runtimeClasspath)
-        from({
-            configurations.runtimeClasspath.get().filter { it.name.endsWith("jar") }.map { zipTree(it) }
-        })
+    assemble {
+        dependsOn(shadowJar)
+    }
+    compileJava {
+        options.encoding = "UTF-8"
+        options.release.set(17)
+    }
+    compileKotlin {
+        kotlinOptions.jvmTarget = "17"
     }
 }

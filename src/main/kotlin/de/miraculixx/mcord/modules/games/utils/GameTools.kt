@@ -5,6 +5,7 @@ import de.miraculixx.mcord.config.msgDiff
 import de.miraculixx.mcord.modules.games.GameManager
 import de.miraculixx.mcord.modules.games.GoalManager
 import de.miraculixx.mcord.modules.games.utils.enums.Game
+import net.dv8tion.jda.api.entities.channel.concrete.ThreadChannel
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent
 import java.util.*
@@ -61,7 +62,7 @@ class GameTools(private val gameTag: String, private val gameName: String, priva
             "R" -> {
                 GoalManager.registerNewGame(game, true, member.idLong, guildID)
                 it.message.delete().queue()
-                GameManager.newGame(game, guild, listOf(options[1], options[2]), it.threadChannel.parentMessageChannel.idLong)
+                GameManager.newGame(game, guild, listOf(options[1], options[2]), (it.channel as ThreadChannel).parentMessageChannel.idLong)
             }
             "YES" -> {
                 if (options[2] != member.id)

@@ -1,14 +1,14 @@
 package de.miraculixx.mcord.modules.games.chess
 
-import de.miraculixx.mcord.modules.games.utils.enums.Game
 import de.miraculixx.mcord.modules.games.utils.GameTools
+import de.miraculixx.mcord.modules.games.utils.enums.Game
 import de.miraculixx.mcord.utils.entities.ButtonEvent
 import de.miraculixx.mcord.utils.entities.DropDownEvent
 import de.miraculixx.mcord.utils.entities.ModalEvent
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent
-import net.dv8tion.jda.api.interactions.components.Modal
 import net.dv8tion.jda.api.interactions.components.text.TextInput
 import net.dv8tion.jda.api.interactions.components.text.TextInputStyle
+import net.dv8tion.jda.api.interactions.modals.Modal
 
 class ChessButton : ButtonEvent, ModalEvent, DropDownEvent {
     override suspend fun trigger(it: ButtonInteractionEvent) {
@@ -32,6 +32,7 @@ class ChessButton : ButtonEvent, ModalEvent, DropDownEvent {
                         .build()
                 ).queue()
             }
+
             else -> GameTools("CHESS", "Schach", Game.CHESS).buttons(it)
         }
     }

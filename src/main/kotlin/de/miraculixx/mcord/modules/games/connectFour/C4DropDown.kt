@@ -5,14 +5,15 @@ import de.miraculixx.mcord.modules.games.utils.enums.Game
 import de.miraculixx.mcord.utils.api.SQL
 import de.miraculixx.mcord.utils.entities.DropDownEvent
 import net.dv8tion.jda.api.entities.Member
-import net.dv8tion.jda.api.events.interaction.component.SelectMenuInteractionEvent
+import net.dv8tion.jda.api.events.interaction.component.GenericSelectMenuInteractionEvent
 import net.dv8tion.jda.api.interactions.InteractionHook
+import net.dv8tion.jda.api.interactions.components.selections.StringSelectMenu
 
 class C4DropDown : DropDownEvent {
-    override suspend fun trigger(it: SelectMenuInteractionEvent) {
+    override suspend fun trigger(it: GenericSelectMenuInteractionEvent<String, StringSelectMenu>) {
         val member = it.member ?: return
         val secondary = it.selectMenu.id?.split('_')?.get(3) == "2"
-        val data = it.selectedOptions.first().value.split('_')
+        val data = it.values.first().split('_')
         val emote = data[0]
         val guildID = it.guild?.idLong ?: return
 
@@ -29,6 +30,7 @@ class C4DropDown : DropDownEvent {
                             "+ Aktuell ist unser Ziel Boost Level 2 für private Threads und mehr Spielmöglichkeiten```"
                 ).queue()
             }
+
             "SELECTED" -> hook.editOriginal("```diff\n- Du nutzt bereits diesen Skin!```")
             else -> {
                 val id = member.idLong

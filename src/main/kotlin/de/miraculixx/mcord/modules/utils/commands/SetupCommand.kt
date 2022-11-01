@@ -8,6 +8,7 @@ import de.miraculixx.mcord.utils.entities.SlashCommandEvent
 import de.miraculixx.mcord.utils.notify
 import dev.minn.jda.ktx.messages.Embed
 import net.dv8tion.jda.api.Permission
+import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel
 import net.dv8tion.jda.api.entities.emoji.Emoji
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent
 import net.dv8tion.jda.api.exceptions.InsufficientPermissionException
@@ -35,7 +36,7 @@ class SetupCommand : SlashCommandEvent {
                 if (it.getOption("stats-channel") != null) {
                     val g = SQL.getGuild(guild.idLong)
                     if (g.premium) {
-                        val target = it.getOption("stats-channel")!!.asTextChannel
+                        val target = it.getOption("stats-channel")?.asChannel as? MessageChannel
                         if (target == null) {
                             hook.editOriginal("```diff\n- Please select a valid channel. NOT a category```")
                             return
@@ -46,8 +47,6 @@ class SetupCommand : SlashCommandEvent {
                                 return
                             }
 
-                            target.upsertPermissionOverride(guild.publicRole).setDenied(Permission.MESSAGE_SEND)
-                                .setAllowed(Permission.VIEW_CHANNEL).queue()
                             //target.upsertPermissionOverride(it.jda.selfUser)
                             UpdaterGame.updateLeaderboardGuild(guild, target)
                             //target?.upsertPermissionOverride(it.jda.selfUser)

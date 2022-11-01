@@ -2,11 +2,14 @@
 
 package de.miraculixx.mcord.config
 
+import de.miraculixx.mcord.utils.extensions.enumOf
 import de.miraculixx.mcord.utils.log
 import org.yaml.snakeyaml.Yaml
 import java.io.File
+import java.io.InputStream
+import kotlin.io.path.Path
 
-class Config(path: String, private val name: String) {
+class Config(stream: InputStream?, private val name: String) {
     private val yaml: Yaml = Yaml()
     private val configMap: Map<String, Any>
 
@@ -57,28 +60,35 @@ class Config(path: String, private val name: String) {
         return getString(name).lowercase() == "true"
     }
 
+    inline fun <reified T : Enum<T>> getEnum(name: String): T? {
+        return enumOf<T>(getString(name))
+    }
 
-    private fun loadConfig(file: File) {
+
+    private fun loadConfig(file: File, input: InputStream) {
         ">> Create new Config File - $name".log()
-        val classLoader = this.javaClass.classLoader
         if (!file.exists()) {
             file.createNewFile()
-            val stream = classLoader.getResourceAsStream(name)
-            file.writeBytes(stream.readAllBytes())
+            file.writeBytes(input.readAllBytes())
         }
     }
 
     init {
         ">> Load Config - $name".log()
-        val file = File(path)
-        if (!file.exists()) loadConfig(file)
+        val file = Path("config/$name.yml").toFile()
+        configMap = if (stream != null) {
+            if (!file.exists()) loadConfig(file, stream)
 
-        configMap = try {
-            yaml.load(File(path).inputStream())
-        } catch (e: Exception) {
-            e.printStackTrace()
-            "ERROR - Failed to load Configuration File. ^^ Reason above ^^".log()
-            "ERROR - Config Path -> $path".log()
+            try {
+                yaml.load(file.inputStream())
+            } catch (e: Exception) {
+                e.printStackTrace()
+                "ERROR - Failed to load Configuration File. ^^ Reason above ^^".log()
+                "ERROR - Config Path -> ${file.path}".log()
+                emptyMap()
+            }
+        } else {
+            "ERROR - Configuration file is null".log()
             emptyMap()
         }
     }

@@ -15,6 +15,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import net.dv8tion.jda.api.EmbedBuilder
 import net.dv8tion.jda.api.entities.*
+import net.dv8tion.jda.api.entities.channel.concrete.ThreadChannel
 import net.dv8tion.jda.api.entities.emoji.Emoji
 import net.dv8tion.jda.api.events.interaction.component.GenericComponentInteractionCreateEvent
 import net.dv8tion.jda.api.interactions.components.ActionRow
@@ -205,7 +206,7 @@ class TTTGame(
         }
         checkWin()
         val buttons = calcButtons()
-        message.editMessageEmbeds(calcEmbed()).setActionRows(buttons).complete()
+        message.editMessageEmbeds(calcEmbed()).setComponents(buttons).complete()
         threadMessage.editMessageComponents(buttons).complete()
         event?.editMessage(event.message.contentRaw)?.queue()
         if (winner != null) {
@@ -223,7 +224,7 @@ class TTTGame(
 
     override suspend fun setWinner(win: FieldsTwoPlayer) {
         winner = win
-        message.editMessageEmbeds(calcEmbed()).setActionRows(calcButtons()).queue()
+        message.editMessageEmbeds(calcEmbed()).setComponents(calcButtons()).queue()
         thread.delete().queue()
     }
 
@@ -237,9 +238,9 @@ class TTTGame(
         getDefaultScope().launch {
             val channel = guild.getTextChannelById(channelID)!!
             message = channel.sendMessageEmbeds(calcEmbed())
-                .setActionRows(calcButtons()).complete()
+                .setComponents(calcButtons()).complete()
             thread = message.createThreadChannel("TTT - ${member1.user.name} vs ${member2.user.name}").complete()
-            threadMessage = thread.sendMessage(" \u1CBC ").setActionRows(calcButtons()).complete()
+            threadMessage = thread.sendMessage(" \u1CBC ").setComponents(calcButtons()).complete()
             thread.addThreadMember(member1).complete()
             thread.addThreadMember(member2).complete()
             val mention = if (whoPlays) member1.asMention else member2.asMention

@@ -6,17 +6,20 @@ import de.miraculixx.mcord.modules.games.GoalManager
 import de.miraculixx.mcord.modules.games.utils.FieldsTwoPlayer
 import de.miraculixx.mcord.modules.games.utils.SimpleGame
 import de.miraculixx.mcord.modules.games.utils.enums.Game
-import de.miraculixx.mcord.utils.api.SQL
 import dev.minn.jda.ktx.events.getDefaultScope
+import dev.minn.jda.ktx.interactions.components.StringSelectMenu
 import kotlinx.coroutines.launch
 import net.dv8tion.jda.api.EmbedBuilder
-import net.dv8tion.jda.api.entities.*
+import net.dv8tion.jda.api.entities.Guild
+import net.dv8tion.jda.api.entities.Member
+import net.dv8tion.jda.api.entities.Message
+import net.dv8tion.jda.api.entities.MessageEmbed
+import net.dv8tion.jda.api.entities.channel.concrete.ThreadChannel
 import net.dv8tion.jda.api.entities.emoji.Emoji
 import net.dv8tion.jda.api.events.interaction.component.GenericComponentInteractionCreateEvent
 import net.dv8tion.jda.api.interactions.InteractionHook
 import net.dv8tion.jda.api.interactions.components.ActionRow
 import net.dv8tion.jda.api.interactions.components.buttons.Button
-import net.dv8tion.jda.api.interactions.components.selections.SelectMenu
 import java.util.*
 import kotlin.random.Random
 
@@ -154,14 +157,15 @@ class ChessGame(
         val msg = msg("chessChooseField", guildID)
         if (list.size > 5) {
             //Dropdown
-            val dd = SelectMenu.create("GAME_CHESS_P_${uuid}")
-            dd.placeholder = msg("chessMoves", guildID)
-            dd.maxValues = 1
-            dd.minValues = 1
-            list.forEach { d ->
-                dd.addOption("Field ${columnChars[d.second]}${(7 - d.first) + 1}", "${newPos.first}_${newPos.second}_${d.first}_${d.second}")
+            val dd = StringSelectMenu("GAME_CHESS_P_${uuid}") {
+                placeholder = msg("chessMoves", guildID)
+                maxValues = 1
+                minValues = 1
+                list.forEach { d ->
+                    addOption("Field ${columnChars[d.second]}${(7 - d.first) + 1}", "${newPos.first}_${newPos.second}_${d.first}_${d.second}")
+                }
             }
-            hook.editOriginal(msg).setActionRow(dd.build()).queue()
+            hook.editOriginal(msg).setActionRow(dd).queue()
         } else if (list.isNotEmpty()) {
             val buttons = buildList {
                 list.forEach { d ->
@@ -209,7 +213,7 @@ class ChessGame(
         val addon = if (prevFigure == FieldsChess.EMPTY) "" else " (takes -> ${prevFigure.light})"
         val log = "${figure.light} $oldField -> $newField $addon"
         thread.sendMessage("${who.asMention} | $log").queue()
-        event?.editMessage(log)?.setActionRows()?.queue()
+        event?.editMessage(log)?.setActionRow()?.queue()
 
         //Check if something win related happened
         checkWin()
@@ -217,10 +221,10 @@ class ChessGame(
         //Switch to next Player
         if (winner != null) {
             threadMessage.delete().queue()
-            message.editMessageEmbeds(calcEmbed()).setActionRows().queue()
+            message.editMessageEmbeds(calcEmbed()).setActionRow().queue()
         } else {
             val buttons = calcButtons()
-            message.editMessageEmbeds(calcEmbed()).setActionRows(buttons).queue()
+            message.editMessageEmbeds(calcEmbed()).setComponents(buttons).queue()
             threadMessage.editMessageComponents(buttons).queue()
         }
     }
@@ -249,7 +253,7 @@ class ChessGame(
 
     override suspend fun setWinner(win: FieldsTwoPlayer) {
         winner = win
-        message.editMessageEmbeds(calcEmbed()).setActionRows().queue()
+        message.editMessageEmbeds(calcEmbed()).setComponents().queue()
         thread.delete().queue()
     }
 
@@ -278,9 +282,9 @@ class ChessGame(
         getDefaultScope().launch {
             val channel = guild.getTextChannelById(channelID)!!
             val selector = calcButtons()
-            message = channel.sendMessageEmbeds(calcEmbed()).setActionRows(selector).complete()
+            message = channel.sendMessageEmbeds(calcEmbed()).setComponents(selector).complete()
             thread = message.createThreadChannel("4G - ${member1.nickname ?: member1.user.name} vs ${member2.nickname ?: member2.user.name}").complete()
-            threadMessage = thread.sendMessage(" \u1CBC ").setActionRows(selector).complete()
+            threadMessage = thread.sendMessage(" \u1CBC ").setComponents(selector).complete()
             thread.addThreadMember(member1).complete()
             thread.addThreadMember(member2).complete()
             val mention = if (whoPlays) player1 else player2

@@ -4,15 +4,13 @@ import de.miraculixx.mcord.utils.api.SQL
 import java.io.File
 
 private val languages = buildMap {
-    var jarPath = File(javaClass.protectionDomain.codeSource.location.toURI()).path
-    val jarName = jarPath.substring(jarPath.lastIndexOf("/") + 1)
-    jarPath = jarPath.removeSuffix(jarName)
-    val s = File.separator
-    val langFolder = File("$jarPath${s}config${s}lang")
-    langFolder.mkdirs()
+    val cl = this::class.java
 
-    put("DE_DE", Config("${langFolder.path}${s}de_DE.yml", "lang/de_DE.yml"))
-    put("EN_US", Config("${langFolder.path}${s}en_US.yml", "lang/en_US.yml"))
+    val configFolder = File("config/lang")
+    if (!configFolder.exists() || !configFolder.isDirectory) configFolder.mkdirs()
+
+    put("DE_DE", Config(cl.getResourceAsStream("/de_DE.yml"), "de_DE"))
+    put("EN_US", Config(cl.getResourceAsStream("/en_US.yml"), "en_US"))
 }
 
 val guildCache = HashMap<Long, String>()

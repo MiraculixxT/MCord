@@ -10,20 +10,15 @@ object ConfigManager {
     }
 
     init {
-        var jarPath = File(javaClass.protectionDomain.codeSource.location.toURI()).path
-        val jarName = jarPath.substring(jarPath.lastIndexOf("/") + 1)
-        jarPath = jarPath.removeSuffix(jarName)
+        val cl = this::class.java
 
-        val s = File.separator
-        val configFolder = File("$jarPath${s}config")
-        println(configFolder.path)
+        val configFolder = File("config")
         if (!configFolder.exists() || !configFolder.isDirectory) configFolder.mkdirs()
-        File("$jarPath${s}config${s}lang").mkdirs()
 
         configs = mapOf(
-            Configs.CORE to Config("${configFolder.path}${s}core.yml", "core.yml"),
-            Configs.SETTINGS to Config("${configFolder.path}${s}config.yml", "config.yml"),
-            Configs.GAME_SETTINGS to Config("${configFolder.path}${s}gamesettings.yml", "gamesettings.yml")
+            Configs.CORE to Config(cl.getResourceAsStream("/core.yml"), "core"),
+            Configs.SETTINGS to Config(cl.getResourceAsStream("/config.yml"), "config"),
+            Configs.GAME_SETTINGS to Config(cl.getResourceAsStream("/gamesettings.yml"), "gamesettings"),
         )
     }
 }
