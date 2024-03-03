@@ -1,14 +1,14 @@
 package de.miraculixx.mcord.modules.suggest
 
 import de.miraculixx.mcord.utils.entities.DropDownEvent
-import net.dv8tion.jda.api.events.interaction.component.SelectMenuInteractionEvent
+import net.dv8tion.jda.api.events.interaction.component.StringSelectInteractionEvent
 import net.dv8tion.jda.api.interactions.components.ActionRow
-import net.dv8tion.jda.api.interactions.components.Modal
 import net.dv8tion.jda.api.interactions.components.text.TextInput
 import net.dv8tion.jda.api.interactions.components.text.TextInputStyle
+import net.dv8tion.jda.api.interactions.modals.Modal
 
 class DropdownSuggest: DropDownEvent {
-    override suspend fun trigger(it: SelectMenuInteractionEvent) {
+    override suspend fun trigger(it: StringSelectInteractionEvent) {
         val options = it.selectedOptions
         if (options.isEmpty()) {
             it.reply("```diff\n- ❌ Bitte wähle eine Kategorie aus, um etwas vor zu schlagen ❌```")

@@ -19,7 +19,6 @@ object ConfigManager {
 
         val s = File.separator
         val configFolder = File("$jarPath${s}config")
-        println(configFolder.path)
         if (!configFolder.exists() || !configFolder.isDirectory) configFolder.mkdirs()
 
         configs = mapOf(

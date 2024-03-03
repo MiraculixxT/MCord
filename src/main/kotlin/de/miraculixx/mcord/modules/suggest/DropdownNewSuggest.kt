@@ -3,11 +3,11 @@ package de.miraculixx.mcord.modules.suggest
 import de.miraculixx.mcord.utils.entities.DropDownEvent
 import dev.minn.jda.ktx.messages.Embed
 import kotlinx.coroutines.delay
-import net.dv8tion.jda.api.events.interaction.component.SelectMenuInteractionEvent
+import net.dv8tion.jda.api.events.interaction.component.StringSelectInteractionEvent
 import kotlin.time.Duration.Companion.seconds
 
 class DropdownNewSuggest: DropDownEvent {
-    override suspend fun trigger(it: SelectMenuInteractionEvent) {
+    override suspend fun trigger(it: StringSelectInteractionEvent) {
         val data = it.selectMenu.id?.removePrefix("SUGGEST_")?.split('_') ?: return
         val member = it.member ?: return
         if (data[1] != member.id) {
