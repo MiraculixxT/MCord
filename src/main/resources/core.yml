@@ -5,8 +5,8 @@
 
 # Discord Bot Token
 # Get it on https://discord.com/developers/applications/
-DISCORD_TOKEN: "OTU4NDM0OTIzMTAwOTEzODA0.GG-i3c.6irF1BAdgAd8NayHcJ3Rm2ecPFQEh51SbkZmoo"
+DISCORD_TOKEN: "<token>"
 
 # MariaDB SQL Token
 # This Key is privat. Replace it with your own SQL Key
-SQL_TOKEN: "aoLw5QbsS7NDduGV"
+SQL_TOKEN: "<sql>"
