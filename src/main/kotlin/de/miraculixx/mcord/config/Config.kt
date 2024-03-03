@@ -2,7 +2,7 @@
 
 package de.miraculixx.mcord.config
 
-import de.miraculixx.mcord.utils.log
+import de.miraculixx.mcord.utils.log.log
 import org.yaml.snakeyaml.Yaml
 import java.io.File
 

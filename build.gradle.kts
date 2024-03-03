@@ -1,6 +1,7 @@
 plugins {
-    kotlin("jvm") version "1.7.0"
-    kotlin("plugin.serialization") version "1.6.20"
+    kotlin("jvm") version "1.7.20"
+    kotlin("plugin.serialization") version "1.7.20"
+    application
 }
 
 group = "de.miraculixx"
@@ -12,13 +13,13 @@ repositories {
 }
 
 dependencies {
-    implementation("net.dv8tion", "JDA", "5.0.0-alpha.13")
-    implementation("com.github.minndevelopment", "jda-ktx","0.9.2-alpha.13")
+    implementation("net.dv8tion", "JDA", "5.0.0-beta.13")
+    implementation("com.github.minndevelopment", "jda-ktx", "0.10.0-beta.1")
 
-    implementation("org.jetbrains.kotlinx", "kotlinx-serialization-json", "1.3.3")
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.4.1")
 
     implementation("io.ktor", "ktor-client-core-jvm", "2.0.1")
-    //implementation("io.ktor", "ktor-client-cio", "2.0.1")
+    implementation("io.ktor", "ktor-client-cio", "2.0.1")
 
     implementation("org.slf4j", "slf4j-nop", "2.0.0-alpha7")
     implementation("ch.qos.logback", "logback-classic", "1.2.11")
@@ -28,18 +29,16 @@ dependencies {
     //implementation("org.mariadb.jdbc", "mariadb-java-client", "3.0.5")
 }
 
+application {
+    mainClass.set("de.miraculixx.mcord.MainKt")
+}
 
 tasks {
-    jar {
-        manifest {
-            attributes["Main-Class"] = "de.miraculixx.mcord.MainKt"
-        }
-
-        duplicatesStrategy = DuplicatesStrategy.EXCLUDE
-        from(sourceSets.main.get().output)
-        dependsOn(configurations.runtimeClasspath)
-        from({
-            configurations.runtimeClasspath.get().filter { it.name.endsWith("jar") }.map { zipTree(it) }
-        })
+    compileJava {
+        options.encoding = "UTF-8"
+        options.release.set(17)
+    }
+    compileKotlin {
+        kotlinOptions.jvmTarget = "17"
     }
 }
