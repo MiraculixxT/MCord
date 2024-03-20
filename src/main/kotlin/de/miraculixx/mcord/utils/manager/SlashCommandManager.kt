@@ -25,7 +25,7 @@ object SlashCommandManager {
 
     fun startListen(jda: JDA) = jda.listener<SlashCommandInteractionEvent> {
         val commandClass = commands[it.name] ?: return@listener
-        ">> ${it.user.asTag} -> /${it.name} ${it.subcommandName ?: ""}".log()
+        ">> ${it.user.name} -> /${it.name} ${it.subcommandName ?: ""}".log()
         commandClass.trigger(it)
     }
 

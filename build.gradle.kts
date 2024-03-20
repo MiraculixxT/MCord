@@ -23,10 +23,6 @@ dependencies {
 
     implementation("org.slf4j", "slf4j-nop", "2.0.0-alpha7")
     implementation("ch.qos.logback", "logback-classic", "1.2.11")
-
-    implementation("org.yaml", "snakeyaml", "1.21")
-
-    //implementation("org.mariadb.jdbc", "mariadb-java-client", "3.0.5")
 }
 
 application {
